@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>React-redux-notes by Thiruppathi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">React-redux-notes</h1>
+      <h2 class="project-tagline">Study notes of React-Redux from DanAbramov&#39;s Talk</h2>
+      <a href="https://github.com/Thiruppathi/react-redux-notes" class="btn">View on GitHub</a>
+      <a href="https://github.com/Thiruppathi/react-redux-notes/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/Thiruppathi/react-redux-notes/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="react-redux-notes" class="anchor" href="#react-redux-notes" aria-hidden="true"><span class="octicon octicon-link"></span></a>react-redux-notes</h1>
+
+<p>Study notes of React-Redux from DanAbramov's Talk</p>
+
+<h2>
+<a id="1-the-single-immutable-state-tree" class="anchor" href="#1-the-single-immutable-state-tree" aria-hidden="true"><span class="octicon octicon-link"></span></a>1. The Single Immutable State Tree</h2>
+
+<p>The first principle of Redux is, the entire application's state is managed through a Single JS Object i.e, <strong>'Single Immutable State Tree'</strong>.</p>
+
+<p>Everything that changes within the application, including the data &amp; the UI State are contained in single JS Object called 'State Tree'.</p>
+
+<p>In more complex applications, more state to keep track of. You can track back the state changes from this State tree.</p>
+
+<h2>
+<a id="2-describing-state-changes-with-actions" class="anchor" href="#2-describing-state-changes-with-actions" aria-hidden="true"><span class="octicon octicon-link"></span></a>2. Describing State changes with Actions</h2>
+
+<p>The state-tree is read-only.</p>
+
+<p>Whenever you want to change the state, you need to dispatch an action.</p>
+
+<p>An action is a plain js object which defines the change.</p>
+
+<p>Just like the State is the minimial representation of data in the app,
+The Action is the minimal representation of the change to the data.</p>
+
+<p>The structure of Action object is up to you, the only requirement is that it has a</p>
+
+<p><code>type</code> property, which is not undefined.</p>
+
+<p>Its suggested that to use "String" as it's serializable.</p>
+
+<p>Different type of apps have Different type of actions. We don't need additional information for passing the action.</p>
+
+<h2>
+<a id="3-pure--impure-function" class="anchor" href="#3-pure--impure-function" aria-hidden="true"><span class="octicon octicon-link"></span></a>3. Pure &amp; Impure Function</h2>
+
+<p>Its important to understand the pure &amp; impure functions.</p>
+
+<h3>
+<a id="pure-functions" class="anchor" href="#pure-functions" aria-hidden="true"><span class="octicon octicon-link"></span></a>Pure Functions</h3>
+
+<p>Pure Functions are the functions whose return values are solely dependent on the parameters passed on to the functions. Pure Functions doesn't have any observable side effects such as network/database calls.</p>
+
+<p>You can be confident that if you call a pure function, for the  same arguments, your are gonna get the same return values always. Results are predictable.</p>
+
+<pre><code>function square(x) {
+  return x * x;
+}
+</code></pre>
+
+<p>Pure functions doesn't modify the values to passed to them. In the following example, the items array is not modified, instead it returns a new Array, by using items.map();</p>
+
+<pre><code>function squareAll(items) {
+  return items.map(square);
+}
+</code></pre>
+
+<h3>
+<a id="impure-functions" class="anchor" href="#impure-functions" aria-hidden="true"><span class="octicon octicon-link"></span></a>Impure Functions</h3>
+
+<p>On the opposite,  Impure functions, they may have side effects;
+they may call db, make network requests, they may override the values to passed to them.</p>
+
+<pre><code>function square(x) {
+  updateXinDB(x);
+  return x * x;
+}
+
+function squareAll(items) {
+  for(let i=0; i&lt;items.length; i++ ){
+    items[i] = square(items[i]);
+  }
+}
+</code></pre>
+
+<h2>
+<a id="4-the-reducer-function" class="anchor" href="#4-the-reducer-function" aria-hidden="true"><span class="octicon octicon-link"></span></a>4. The Reducer Function</h2>
+
+<p>The UI/View layer is more predictable, when it is just described as pure functions of the application state. This approach was pioneered by React.</p>
+
+<p>Redux complements this approach with another idea.</p>
+
+<p>The state mutation in your app should be  described as pure function.</p>
+
+<p>That takes <code>PreviousState</code> , <code>ActionBeingDispatched</code> and return the <code>NextState</code> of your application.</p>
+
+<p>In any redux application, there is one particular function that takes the  state of the whole application and the action being dispatched and return the next state of the whole application.</p>
+
+<p>It is important that it doesn't modify the state to given to it. It has to be pure and should only return the next state.(new object)</p>
+
+<p>This function is called <strong>'Reducer'</strong> Function.</p>
+
+<h2>
+<a id="5-writing-a-counter-reducer-with-tests" class="anchor" href="#5-writing-a-counter-reducer-with-tests" aria-hidden="true"><span class="octicon octicon-link"></span></a>5. Writing a counter Reducer with Tests</h2>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/Thiruppathi/react-redux-notes">React-redux-notes</a> is maintained by <a href="https://github.com/Thiruppathi">Thiruppathi</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
