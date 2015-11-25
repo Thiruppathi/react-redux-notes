@@ -3,7 +3,7 @@ Study notes of React-Redux from DanAbramov's Talk
 
 ## 1. The Single Immutable State Tree
 
-The first principle of Redux is, the entire application's state is managed through a Single JS Object i.e, *'Single Immutable State Tree'*.
+The first principle of Redux is, the entire application's state is managed through a Single JS Object i.e, **'Single Immutable State Tree'**.
 
 Everything that changes within the application, including the data & the UI State are contained in single JS Object called 'State Tree'.
 
@@ -45,12 +45,10 @@ You can be confident that if you call a pure function, for the  same arguments, 
 function square(x) {
   return x * x;
 }
-
 ```
 Pure functions doesn't modify the values to passed to them. In the following example, the items array is not modified, instead it returns a new Array, by using items.map();
 
 ```
-
 function squareAll(items) {
   return items.map(square);
 }
@@ -91,3 +89,5 @@ In any redux application, there is one particular function that takes the  state
 It is important that it doesn't modify the state to given to it. It has to be pure and should only return the next state.(new object)
 
 This function is called **'Reducer'** Function.
+
+## 5. Writing a counter Reducer with Tests
