@@ -209,7 +209,7 @@ In the previous step, we looked at how to implement a simple counter example by 
 
 Now we are going to re-implement createStore() provide by Redux from scratch.
 
-
+[JS Bin of Demo](http://jsbin.com/cewote/edit?html,js,output)
 Instead of using Redux createStore() as follows,
 
 ```
@@ -243,3 +243,8 @@ const createStore = (reducer) => {
 
 };
 ```
+
+## 8. React Counter example
+Lets use React components to render the Counter value.
+
+[JS Bin Demo](http://jsbin.com/razemo/edit?html,js,console,output)
