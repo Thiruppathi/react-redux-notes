@@ -203,3 +203,43 @@ The Store has 3 important methods.
 So that you can update your UI of your application.
 
 [JSBin of the Demo](http://jsbin.com/nujole/2/edit?html,js,console,output)
+
+## 7. Implementing Store from Scratch
+In the previous step, we looked at how to implement a simple counter example by using createStore() provided by Redux.
+
+Now we are going to re-implement createStore() provide by Redux from scratch.
+
+
+Instead of using Redux createStore() as follows,
+
+```
+const {createStore} = Redux;
+```
+
+We gonna create the createStore as follows.
+
+```
+const createStore = (reducer) => {
+  let state;
+  let listeners = [];
+
+  const getState = () => state;
+
+  const dispatch = (action) => {
+    state = reducer(state, action);
+    listeners.forEach(listener => listener());
+  };
+
+  const subscribe = (listener) => {
+    listeners.push(listener);
+    return () => {
+      listeners = listeners.filter(l => l !== listener);
+    };
+  };
+
+  dispatch({});
+
+  return {getState, dispatch, subscribe};
+
+};
+```
