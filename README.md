@@ -188,3 +188,18 @@ switch(action.type) {
 ```
 
 ## 6.Store Methods - getState(), dispatch() and subscribe()
+
+The Store binds together the 3 principles of Redux.
+
+- It holds the current application state object.
+- It lets you dispatch actions.
+- When they are created, you need to specify the reducer to tell how the state is updated by the Actions.
+
+The Store has 3 important methods.
+
+1. store.getState();
+2. store.dispatch({type:'INCREMENT'});
+3. store.subscribe() - It lets you register a callback, that redux Store will call it whenever a Action is dispatched.
+So that you can update your UI of your application.
+
+[JSBin of the Demo](http://jsbin.com/nujole/2/edit?html,js,console,output)
