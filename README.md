@@ -196,7 +196,7 @@ The Store binds together the 3 principles of Redux.
 - When they are created, you need to specify the reducer to tell how the state is updated by the Actions.
 
 The Store has 3 important methods.
-
+react-design-diagram
 1. store.getState();
 2. store.dispatch({type:'INCREMENT'});
 3. store.subscribe() - It lets you register a callback, that redux Store will call it whenever a Action is dispatched.
@@ -248,3 +248,5 @@ const createStore = (reducer) => {
 Lets use React components to render the Counter value.
 
 [JS Bin Demo](http://jsbin.com/razemo/edit?html,js,console,output)
+
+## 9.
