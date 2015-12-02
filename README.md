@@ -257,6 +257,7 @@ Lets use React components to render the Counter value.
 
 ## 10. Avoid Object Mutation with Object.assign() and ...spread
 
+[JS Bin Demo](http://jsbin.com/zoveqo/3/edit)
 
 ```
 
