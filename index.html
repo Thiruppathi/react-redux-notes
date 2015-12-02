@@ -289,6 +289,56 @@ Instead of using Redux createStore() as follows,</p>
 
 
 
+<h2>
+<a id="10-avoid-object-mutation-with-objectassign-and-spread" class="anchor" href="#10-avoid-object-mutation-with-objectassign-and-spread" aria-hidden="true"><span class="octicon octicon-link"></span></a>10. Avoid Object Mutation with Object.assign() and ...spread</h2>
+
+<p><a href="http://jsbin.com/zoveqo/3/edit">JS Bin Demo</a></p>
+
+<pre><code>
+const toggleTodo = (todo) =&gt; {
+  return {
+    ...todo,
+    completed: !todo.completed
+  };
+};
+
+/*
+const toggleTodo = (todo) =&gt; {
+  return Object.assign({}, todo, {
+    completed: !todo.completed
+  });
+};
+*/
+
+const testToggleTodo = () =&gt; {
+
+  const todoBefore = {
+    id:0,
+    text: 'Learn Redux',
+    completed: false
+  };
+
+    const todoAfter = {
+    id:0,
+    text: 'Learn Redux',
+    completed: true
+  };
+
+  deepFreeze(todoBefore);
+  expect(toggleTodo(todoBefore)).toEqual(todoAfter);
+
+};
+
+testToggleTodo();
+
+console.log('All tests Passed.');
+
+</code></pre>
+
+<p>You can use <code>Object.assign()</code> or ...spread operator to mutate Object.</p>
+
+<p>When using <code>Object.assign()</code> use a Polyfill to support evergreen browsers.</p>
+
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/Thiruppathi/react-redux-notes">React-redux-notes</a> is maintained by <a href="https://github.com/Thiruppathi">Thiruppathi</a>.</span>
 
