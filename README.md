@@ -249,4 +249,7 @@ Lets use React components to render the Counter value.
 
 [JS Bin Demo](http://jsbin.com/razemo/edit?html,js,console,output)
 
-## 9.
+## 9. Avoiding Array Mutation using concat, slice & ...spread
+[JS Bin Demo](http://jsbin.com/zucogi)
+
+<script src="https://gist.github.com/anonymous/2b9775562a5c4d01abd7.js"></script>
