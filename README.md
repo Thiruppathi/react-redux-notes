@@ -302,4 +302,4 @@ console.log('All tests Passed.');
 
 You can use `Object.assign()` or ...spread operator to mutate Object.
 
-When using Object.assign() use a Polyfill to support evergreen browsers.
+When using `Object.assign()` use a Polyfill to support evergreen browsers.
