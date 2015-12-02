@@ -250,6 +250,56 @@ Lets use React components to render the Counter value.
 [JS Bin Demo](http://jsbin.com/razemo/edit?html,js,console,output)
 
 ## 9. Avoiding Array Mutation using concat, slice & ...spread
+
 [JS Bin Demo](http://jsbin.com/zucogi)
 
 <script src="https://gist.github.com/anonymous/2b9775562a5c4d01abd7.js"></script>
+
+## 10. Avoid Object Mutation with Object.assign() and ...spread
+
+
+```
+
+const toggleTodo = (todo) => {
+  return {
+    ...todo,
+    completed: !todo.completed
+  };
+};
+
+/*
+const toggleTodo = (todo) => {
+  return Object.assign({}, todo, {
+    completed: !todo.completed
+  });
+};
+*/
+
+const testToggleTodo = () => {
+
+  const todoBefore = {
+    id:0,
+    text: 'Learn Redux',
+    completed: false
+  };
+
+    const todoAfter = {
+    id:0,
+    text: 'Learn Redux',
+    completed: true
+  };
+
+  deepFreeze(todoBefore);
+  expect(toggleTodo(todoBefore)).toEqual(todoAfter);
+
+};
+
+testToggleTodo();
+
+console.log('All tests Passed.');
+
+```
+
+You can use `Object.assign()` or ...spread operator to mutate Object.
+
+When using Object.assign() use a Polyfill to support evergreen browsers.
