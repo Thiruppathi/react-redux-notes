@@ -1,5 +1,5 @@
 # react-redux-notes
-Study notes of React-Redux from DanAbramov's Talk
+Study notes of React-Redux.
 
 ## 1. The Single Immutable State Tree
 The first principle of Redux is, the entire application's state is managed through a Single JS Object i.e, **'Single Immutable State Tree'**.
