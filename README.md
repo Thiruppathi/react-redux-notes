@@ -304,3 +304,54 @@ console.log('All tests Passed.');
 You can use `Object.assign()` or ...spread operator to mutate Object.
 
 When using `Object.assign()` use a Polyfill to support evergreen browsers.
+
+
+## 11. Writing a ToDo List Reducer ( Adding a ToDo)
+
+[JS Bin Demo](http://jsbin.com/tenizo/edit?js,console)
+
+```
+const todos = (state=[],action) => {
+  switch(action.type) {
+    case 'ADD_TODO':
+      return[
+        ...state,
+        {
+          id: action.id,
+          text: action.text,
+          completed: false
+        }
+      ];
+    default:
+      return state;
+  }
+};
+
+const testAddTodo = () => {
+  const stateBefore = [];
+  const action = {
+    type: 'ADD_TODO',
+    id: 0,
+    text: 'Learn Redux'
+  };
+
+  const stateAfter = [
+    {
+      id:0,
+      text:'Learn Redux',
+      completed: false
+    }
+  ];
+
+  deepFreeze(stateBefore);
+    deepFreeze(action);
+
+  expect(
+    todos(stateBefore, action)
+  ).toEqual(stateAfter);
+};
+
+testAddTodo();
+console.log('All tests passed.');
+
+```
