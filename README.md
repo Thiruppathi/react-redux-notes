@@ -499,3 +499,12 @@ const todos = (state=[],action) => {
 };
 
 ```
+
+## 14. Reducer Composition with Objects
+
+[JS Bin Demo](http://jsbin.com/wivutu/edit?js,console)
+
+```
+
+
+```
