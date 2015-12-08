@@ -505,6 +505,136 @@ const todos = (state=[],action) => {
 [JS Bin Demo](http://jsbin.com/wivutu/edit?js,console)
 
 ```
+const todo = (state, action) => {
+	switch(action.type) {
+		case 'ADD_TODO':
+			return {
+				id: action.id,
+				text: action.text,
+				completed: false
+			};
+		case 'TOGGLE_TODO':
+			if(state.id !== action.id) {
+				return state;
+			}
+
+			return {
+				...state,
+				completed: !state.completed
+			};
+		default:
+			return state;
+	}
+};
+
+
+const todos = (state=[],action) => {
+  switch(action.type) {
+    case 'ADD_TODO':
+      return[
+        ...state,
+        todo(undefined, action)
+      ];
+		case 'TOGGLE_TODO':
+			return state.map(t => todo(t,action));
+    default:
+      return state;
+  }
+};
+
+
+const visibilityFilter = (
+  state = 'SHOW_ALL',
+  action
+  ) => {
+	switch(action.type) {
+		case 'SET_VISIBILITY_FILTER':
+			return action.filter;
+		default:
+			return state;
+	}
+};
+
+
+const todoApp = (state ={}, action) => {
+	return {
+		todos: todo(state.todos, action),
+		visibilityFilter: visibilityFilter(state.visibilityFilter, action)
+	};
+};
+
+
+const {createStore} = Redux;
+const store = createStore(todoApp);
+
+```
+
+## 15. Reducer Composition with combineReducers()
+
+[JS BIN Demo](http://jsbin.com/puqalo/edit?js,console)
+
+```
+const todoApp = (state ={}, action) => {
+	return {
+		todos: todo(state.todos, action),
+		visibilityFilter: visibilityFilter(state.visibilityFilter, action)
+	};
+};
+```
+
+This pattern is so common in most of the Redux-Apps.
+
+Thats why Redux provides a function called ```{combineReducers}```
+
+```
+const {combineReducers} = Redux;
+
+const todoApp = combineReducers ({
+  todos: todos,
+  visibilityFilter : visibilityFilter
+  });
+
+```
+
+The Keys of the object that configured in the combineReducers denotes the fields  of the state object.
+
+
+The Values of the object that configured in the combineReducers denotes the reducers it should call to update the corresponding state fields.
+
+Let's establish a useful convention.  I'll always name my Reducers after the state keys they manage.
+
+Thanks to ES6 Object literal shorthand notation.
+```
+const {combineReducers} = Redux;
+
+const todoApp = combineReducers ({ todos,  visibilityFilter  });
+
+```
+
+
+## 16. Implementing combineReducers() from Scratch
+
+[JS BIN Demo]()
+
+To gain deeper understanding of combineReducers works, let us implement it from Scratch.
 
 
 ```
+const combineReducers = (reducers) => {
+  return (state = {}, action) => {
+    return Object.keys(reducers).reduce(
+      (nextState, key) => {
+        nextState[key] = reducers[key](
+          state[key],
+          action
+        );
+        return nextState;
+      }, {}
+    );
+  };
+};
+
+```
+
+
+## 17. React ToDo List Example (Adding a ToDo)
