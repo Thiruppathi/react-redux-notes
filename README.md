@@ -662,3 +662,261 @@ const render = () => {
 store.subscribe(render);
 render();
 ```
+
+## 18. React ToDo List Example (Toggling a ToDo)
+[JS Bin Demo](http://jsbin.com/kozaba/edit?html,js,output)
+
+```
+<ul>
+  {this.props.todos.map(todo =>
+   <li  key = {todo.id}
+        onClick={()=>{
+                 store.dispatch({
+                 type: 'TOGGLE_TODO',
+                 id: todo.id
+                });
+        }}
+        style = {{
+          textDecoration: todo.completed ? 'line-through' : 'none'
+                }}>
+  {todo.text}
+  </li>
+   )}
+</ul>
+```
+
+## 19. React ToDo List Example (Filtering a ToDo)
+
+[JS Bin Demo](http://jsbin.com/zedafi/edit?html,js,output)
+
+```
+const FilterLink = ({
+  filter,
+  currentFilter,
+  children
+}) => {
+  if (filter === currentFilter) {
+    return <span > {
+      children
+    } < /span>;
+  }
+  return ( < a href = '#'
+    onClick = {
+      e => {
+        e.preventDefault();
+        store.dispatch({
+          type: 'SET_VISIBILITY_FILTER',
+          filter
+        });
+      }
+    } > {
+      children
+    } < /a>
+  );
+
+};
+```
+
+```
+const getVisibleTodos = (
+  todos, filter
+) => {
+  switch (filter) {
+    case 'SHOW_ALL':
+      return todos;
+    case 'SHOW_COMPLETED':
+      return todos.filter(t => t.completed);
+    case 'SHOW_ACTIVE':
+      return todos.filter(t => !t.completed);
+  }
+};
+```
+
+```
+< p >
+  Show: {
+    ' '
+  } < FilterLink filter = 'SHOW_ALL'
+currentFilter = {
+  visibilityFilter
+} > All < /FilterLink> {
+' '
+} < FilterLink filter = 'SHOW_ACTIVE'
+currentFilter = {
+  visibilityFilter
+} > Active < /FilterLink> {
+' '
+} < FilterLink filter = 'SHOW_COMPLETED'
+currentFilter = {
+  visibilityFilter
+} > Completed < /FilterLink> < /p >
+
+```
+
+
+## 20. Extracting Presentational components (ToDo, ToDo List)
+
+[JS Bin Demo](http://jsbin.com/nefefi/edit?js,output)
+
+Let's Extract the ToDo Component.
+
+```
+const Todo = ({ onClick,completed, text }) => (
+	<li
+	  onClick = {onClick}
+    style = {{textDecoration: completed ? 'line-through' : 'none'}}>
+	    {text}
+	</li>
+);
+```
+
+Now, Extract the TodoList Component.
+
+```
+const TodoList = ({	todos,	onTodoClick }) => (
+    <ul>
+      {todos.map(todo =>
+				  <Todo
+				    key={todo.id}
+	          {...todo}
+	          onClick={() => onTodoClick(todo.id)}
+          />
+      )}
+    </ul>
+);
+
+```
+
+Now, in the render method, repalce the `<ul>` with our extracted component.
+
+```
+<TodoList
+  todos = {visibleTodos}
+   onTodoClick = {id =>
+      store.dispatch({
+        type: 'TOGGLE_TODO',
+        id
+      })
+  } />
+```
+
+
+## 21. Extracting Presentational components (Add ToDo, Footer, Filter Link)
+
+[JS Bin Demo](http://jsbin.com/tedoqi/edit?html,js,output)
+
+Add ToDo
+
+```
+const AddTodo = ({onAddClick}) => {
+	let input;
+
+	return (
+      <div>
+        <input ref = { node => {input = node;}}/>
+        <button onClick = { () => {
+							onAddClick(input.value);
+							input.value = '';
+					}}>
+						Add Todo
+        </button>
+			</div>
+			);
+};
+```
+
+Footer
+
+```
+const Footer = ({visibilityFilter, onFilterClick}) => (
+				<p>
+           Show :
+             {' '}
+             <FilterLink filter = 'SHOW_ALL'  currentFilter = {visibilityFilter} onClick={onFilterClick}>
+							 All
+						 </FilterLink>
+             {' ,  '}
+             <FilterLink filter = 'SHOW_ACTIVE'  currentFilter = {visibilityFilter} onClick={onFilterClick}>
+							 Active
+						 </FilterLink>
+             {' ,  '}
+             <FilterLink filter = 'SHOW_COMPLETED'  currentFilter = {visibilityFilter} onClick={onFilterClick}>
+							 Completed
+						 </FilterLink>
+        </p>
+);
+```
+
+Filter Link
+
+```
+const FilterLink = ({ filter, currentFilter, children, onClick }) => {
+
+	if (filter === currentFilter) {
+    return <span> {children} </span>;
+	}
+
+	return (
+		<a
+        href = '#'
+        onClick = { e => {
+                    e.preventDefault();
+                    onClick(filter)
+                  }
+        }>
+      {children}
+    </a>
+  );
+};
+```
+
+The final ToDoApp component
+
+```
+const TodoApp = ({todos, visibilityFilter}) => (
+      <div>
+
+			<AddTodo
+			      onAddClick={text=>
+			        store.dispatch({
+			          type:'ADD_TODO',
+			          id:nextTodoId++,
+			          text
+          		})
+			      }
+	    />
+
+        <TodoList
+          todos = {getVisibleTodos(todos, visibilityFilter)}
+      		 onTodoClick = {id =>
+              store.dispatch({
+                type: 'TOGGLE_TODO',
+                id
+              })
+          } />
+
+					<Footer
+					  visibilityFilter={visibilityFilter}
+						onFilterClick={filter =>
+						  store.dispatch({
+									type: 'SET_VISIBILITY_FILTER',
+									filter
+									})
+						}
+					/>
+      </div>
+    );
+```
+
+Separation of Presentational Component, decouples the rendering from REDUX.
+
+This has a downside of passing too many properties to the component, which can be resolved using **Container Components**
+
+
+## 22. Extracting Container components (Filter Link)
+
+[JS Bin Demo](http://jsbin.com/woloqo/edit?html,js,output)
+
+```
+
+```
