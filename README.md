@@ -111,7 +111,7 @@ Lets write some test cases using `expect` framework
 
 These test gonna fail, as we've not implemented the Reducer completely.
 
-Lets do that now. Based on the ``action.type`` we need to change the state.
+Lets do that now. Based on the `action.type` we need to change the state.
 
 ```
 function counter(state,action) {
@@ -129,7 +129,6 @@ Now the tests are passing. However if we pass an action which is not understood 
 expect(
       counter(1, {type:'SOMETHING_ELSE'})
 ).toEqual(0);
-
 ```
 
 Let us change the reducer to handle this.
@@ -152,9 +151,10 @@ The initial state of the application can be handled as follows
 expect(
       counter(undefined, {})
 ).toEqual(0);
-
 ```
+
 This will fail the test cases.
+
 ```
 function counter(state,action) {
 if(typeof state ==== 'undefined') {
@@ -188,19 +188,16 @@ switch(action.type) {
 ```
 
 ## 6.Store Methods - getState(), dispatch() and subscribe()
-
 The Store binds together the 3 principles of Redux.
-
 - It holds the current application state object.
 - It lets you dispatch actions.
 - When they are created, you need to specify the reducer to tell how the state is updated by the Actions.
 
-The Store has 3 important methods.
-react-design-diagram
+The Store has 3 important methods. react-design-diagram
 1. store.getState();
 2. store.dispatch({type:'INCREMENT'});
 3. store.subscribe() - It lets you register a callback, that redux Store will call it whenever a Action is dispatched.
-So that you can update your UI of your application.
+4. So that you can update your UI of your application.
 
 [JSBin of the Demo](http://jsbin.com/nujole/2/edit?html,js,console,output)
 
@@ -209,8 +206,7 @@ In the previous step, we looked at how to implement a simple counter example by 
 
 Now we are going to re-implement createStore() provide by Redux from scratch.
 
-[JS Bin of Demo](http://jsbin.com/cewote/edit?html,js,output)
-Instead of using Redux createStore() as follows,
+[JS Bin of Demo](http://jsbin.com/cewote/edit?html,js,output) Instead of using Redux createStore() as follows,
 
 ```
 const {createStore} = Redux;
@@ -250,13 +246,10 @@ Lets use React components to render the Counter value.
 [JS Bin Demo](http://jsbin.com/razemo/edit?html,js,console,output)
 
 ## 9. Avoiding Array Mutation using concat, slice & ...spread
-
 [JS Bin Demo](http://jsbin.com/zucogi)
-
 <script src="https://gist.github.com/anonymous/2b9775562a5c4d01abd7.js"></script>
 
 ## 10. Avoid Object Mutation with Object.assign() and ...spread
-
 [JS Bin Demo](http://jsbin.com/zoveqo/3/edit)
 
 ```
@@ -298,16 +291,13 @@ const testToggleTodo = () => {
 testToggleTodo();
 
 console.log('All tests Passed.');
-
 ```
 
 You can use `Object.assign()` or ...spread operator to mutate Object.
 
 When using `Object.assign()` use a Polyfill to support evergreen browsers.
 
-
 ## 11. Writing a ToDo List Reducer ( Adding a ToDo)
-
 [JS Bin Demo](http://jsbin.com/tenizo/edit?js,console)
 
 ```
@@ -353,12 +343,9 @@ const testAddTodo = () => {
 
 testAddTodo();
 console.log('All tests passed.');
-
 ```
 
-
 ## 12. Writing a Todo List Reducer - Toggling a Todo
-
 [JS Bin Demo](http://jsbin.com/moyepe/edit?js,console)
 
 ```
@@ -373,14 +360,14 @@ const todos = (state=[],action) => {
           completed: false
         }
       ];
-		case 'TOGGLE_TODO':
-			return state.map(todo => {
-				if(todo.id !== action.id) {
-					return todo;
-				}
+        case 'TOGGLE_TODO':
+            return state.map(todo => {
+                if(todo.id !== action.id) {
+                    return todo;
+                }
 
-				return {...todo, completed: !todo.completed };
-			});
+                return {...todo, completed: !todo.completed };
+            });
     default:
       return state;
   }
@@ -457,30 +444,29 @@ console.log('All tests passed.')
 ```
 
 ## 13. Reducer Composition with Arrays
-
 [JS Bin Demo](http://jsbin.com/mumaya/edit?js,console)
 
 ```
 const todo = (state, action) => {
-	switch(action.type) {
-		case 'ADD_TODO':
-			return {
-				id: action.id,
-				text: action.text,
-				completed: false
-			};
-		case 'TOGGLE_TODO':
-			if(state.id !== action.id) {
-				return state;
-			}
+    switch(action.type) {
+        case 'ADD_TODO':
+            return {
+                id: action.id,
+                text: action.text,
+                completed: false
+            };
+        case 'TOGGLE_TODO':
+            if(state.id !== action.id) {
+                return state;
+            }
 
-			return {
-				...state,
-				completed: !state.completed
-			};
-		default:
-			return state;
-	}
+            return {
+                ...state,
+                completed: !state.completed
+            };
+        default:
+            return state;
+    }
 };
 
 
@@ -491,40 +477,38 @@ const todos = (state=[],action) => {
         ...state,
         todo(undefined, action)
       ];
-		case 'TOGGLE_TODO':
-			return state.map(t => todo(t,action));
+        case 'TOGGLE_TODO':
+            return state.map(t => todo(t,action));
     default:
       return state;
   }
 };
-
 ```
 
 ## 14. Reducer Composition with Objects
-
 [JS Bin Demo](http://jsbin.com/wivutu/edit?js,console)
 
 ```
 const todo = (state, action) => {
-	switch(action.type) {
-		case 'ADD_TODO':
-			return {
-				id: action.id,
-				text: action.text,
-				completed: false
-			};
-		case 'TOGGLE_TODO':
-			if(state.id !== action.id) {
-				return state;
-			}
+    switch(action.type) {
+        case 'ADD_TODO':
+            return {
+                id: action.id,
+                text: action.text,
+                completed: false
+            };
+        case 'TOGGLE_TODO':
+            if(state.id !== action.id) {
+                return state;
+            }
 
-			return {
-				...state,
-				completed: !state.completed
-			};
-		default:
-			return state;
-	}
+            return {
+                ...state,
+                completed: !state.completed
+            };
+        default:
+            return state;
+    }
 };
 
 
@@ -535,8 +519,8 @@ const todos = (state=[],action) => {
         ...state,
         todo(undefined, action)
       ];
-		case 'TOGGLE_TODO':
-			return state.map(t => todo(t,action));
+        case 'TOGGLE_TODO':
+            return state.map(t => todo(t,action));
     default:
       return state;
   }
@@ -547,44 +531,42 @@ const visibilityFilter = (
   state = 'SHOW_ALL',
   action
   ) => {
-	switch(action.type) {
-		case 'SET_VISIBILITY_FILTER':
-			return action.filter;
-		default:
-			return state;
-	}
+    switch(action.type) {
+        case 'SET_VISIBILITY_FILTER':
+            return action.filter;
+        default:
+            return state;
+    }
 };
 
 
 const todoApp = (state ={}, action) => {
-	return {
-		todos: todo(state.todos, action),
-		visibilityFilter: visibilityFilter(state.visibilityFilter, action)
-	};
+    return {
+        todos: todo(state.todos, action),
+        visibilityFilter: visibilityFilter(state.visibilityFilter, action)
+    };
 };
 
 
 const {createStore} = Redux;
 const store = createStore(todoApp);
-
 ```
 
 ## 15. Reducer Composition with combineReducers()
-
-[JS BIN Demo](http://jsbin.com/puqalo/edit?js,console)
+[JS Bin Demo](http://jsbin.com/puqalo/edit?js,console)
 
 ```
 const todoApp = (state ={}, action) => {
-	return {
-		todos: todo(state.todos, action),
-		visibilityFilter: visibilityFilter(state.visibilityFilter, action)
-	};
+    return {
+        todos: todo(state.todos, action),
+        visibilityFilter: visibilityFilter(state.visibilityFilter, action)
+    };
 };
 ```
 
 This pattern is so common in most of the Redux-Apps.
 
-Thats why Redux provides a function called ```{combineReducers}```
+Thats why Redux provides a function called `{combineReducers}`
 
 ```
 const {combineReducers} = Redux;
@@ -593,31 +575,26 @@ const todoApp = combineReducers ({
   todos: todos,
   visibilityFilter : visibilityFilter
   });
-
 ```
 
 The Keys of the object that configured in the combineReducers denotes the fields  of the state object.
-
 
 The Values of the object that configured in the combineReducers denotes the reducers it should call to update the corresponding state fields.
 
 Let's establish a useful convention.  I'll always name my Reducers after the state keys they manage.
 
 Thanks to ES6 Object literal shorthand notation.
+
 ```
 const {combineReducers} = Redux;
 
 const todoApp = combineReducers ({ todos,  visibilityFilter  });
-
 ```
 
-
 ## 16. Implementing combineReducers() from Scratch
-
-[JS BIN Demo]()
+[JS Bin Demo](http://jsbin.com/tazuzi/edit?js,console)
 
 To gain deeper understanding of combineReducers works, let us implement it from Scratch.
-
 
 ```
 const combineReducers = (reducers) => {
@@ -633,8 +610,55 @@ const combineReducers = (reducers) => {
     );
   };
 };
+```
+
+## 17. React ToDo List Example (Adding a ToDo)
+[JS Bin Demo](http://jsbin.com/nimeqe/edit?html,js,output)
 
 ```
 
+const { Component } = React;
 
-## 17. React ToDo List Example (Adding a ToDo)
+let nextTodoId = 0;
+
+class TodoApp extends Component {
+    render() {
+        return (
+          <div>
+            <input ref={ node => {
+            this.input = node;
+            }} />
+              <button onClick={()=> {
+                store.dispatch({
+                        type: 'ADD_TODO',
+                        text: this.input.value,
+                        id: nextTodoId++
+                    });
+            this.input.value = '';
+        }}>
+      Add Todo
+        </button>
+        <ul>
+            {this.props.todos.map(todo =>
+             <li key = {todo.id}>
+              {todo.text}
+            </li>
+             )}
+        </ul>
+            </div>
+        );
+    }
+}
+
+const render = () => {
+    ReactDOM.render(
+    <TodoApp
+        todos={store.getState().todos}
+  />,
+    document.getElementById('root')
+    );
+};
+
+store.subscribe(render);
+render();
+```
