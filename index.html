@@ -22,7 +22,7 @@
       <h1>
 <a id="react-redux-notes" class="anchor" href="#react-redux-notes" aria-hidden="true"><span class="octicon octicon-link"></span></a>react-redux-notes</h1>
 
-<p>Study notes of React-Redux from DanAbramov's Talk</p>
+<p>Study notes of React-Redux.</p>
 
 <h2>
 <a id="1-the-single-immutable-state-tree" class="anchor" href="#1-the-single-immutable-state-tree" aria-hidden="true"><span class="octicon octicon-link"></span></a>1. The Single Immutable State Tree</h2>
@@ -159,7 +159,6 @@ function squareAll(items) {
 <pre><code>expect(
       counter(1, {type:'SOMETHING_ELSE'})
 ).toEqual(0);
-
 </code></pre>
 
 <p>Let us change the reducer to handle this.</p>
@@ -180,7 +179,6 @@ function squareAll(items) {
 <pre><code>expect(
       counter(undefined, {})
 ).toEqual(0);
-
 </code></pre>
 
 <p>This will fail the test cases.</p>
@@ -226,12 +224,11 @@ switch(action.type) {
 <li>When they are created, you need to specify the reducer to tell how the state is updated by the Actions.</li>
 </ul>
 
-<p>The Store has 3 important methods.
-react-design-diagram
+<p>The Store has 3 important methods. react-design-diagram
 1. store.getState();
 2. store.dispatch({type:'INCREMENT'});
 3. store.subscribe() - It lets you register a callback, that redux Store will call it whenever a Action is dispatched.
-So that you can update your UI of your application.</p>
+4. So that you can update your UI of your application.</p>
 
 <p><a href="http://jsbin.com/nujole/2/edit?html,js,console,output">JSBin of the Demo</a></p>
 
@@ -242,8 +239,7 @@ So that you can update your UI of your application.</p>
 
 <p>Now we are going to re-implement createStore() provide by Redux from scratch.</p>
 
-<p><a href="http://jsbin.com/cewote/edit?html,js,output">JS Bin of Demo</a>
-Instead of using Redux createStore() as follows,</p>
+<p><a href="http://jsbin.com/cewote/edit?html,js,output">JS Bin of Demo</a> Instead of using Redux createStore() as follows,</p>
 
 <pre><code>const {createStore} = Redux;
 </code></pre>
@@ -332,12 +328,888 @@ const testToggleTodo = () =&gt; {
 testToggleTodo();
 
 console.log('All tests Passed.');
-
 </code></pre>
 
 <p>You can use <code>Object.assign()</code> or ...spread operator to mutate Object.</p>
 
 <p>When using <code>Object.assign()</code> use a Polyfill to support evergreen browsers.</p>
+
+<h2>
+<a id="11-writing-a-todo-list-reducer--adding-a-todo" class="anchor" href="#11-writing-a-todo-list-reducer--adding-a-todo" aria-hidden="true"><span class="octicon octicon-link"></span></a>11. Writing a ToDo List Reducer ( Adding a ToDo)</h2>
+
+<p><a href="http://jsbin.com/tenizo/edit?js,console">JS Bin Demo</a></p>
+
+<pre><code>const todos = (state=[],action) =&gt; {
+  switch(action.type) {
+    case 'ADD_TODO':
+      return[
+        ...state,
+        {
+          id: action.id,
+          text: action.text,
+          completed: false
+        }
+      ];
+    default:
+      return state;
+  }
+};
+
+const testAddTodo = () =&gt; {
+  const stateBefore = [];
+  const action = {
+    type: 'ADD_TODO',
+    id: 0,
+    text: 'Learn Redux'
+  };
+
+  const stateAfter = [
+    {
+      id:0,
+      text:'Learn Redux',
+      completed: false
+    }
+  ];
+
+  deepFreeze(stateBefore);
+    deepFreeze(action);
+
+  expect(
+    todos(stateBefore, action)
+  ).toEqual(stateAfter);
+};
+
+testAddTodo();
+console.log('All tests passed.');
+</code></pre>
+
+<h2>
+<a id="12-writing-a-todo-list-reducer---toggling-a-todo" class="anchor" href="#12-writing-a-todo-list-reducer---toggling-a-todo" aria-hidden="true"><span class="octicon octicon-link"></span></a>12. Writing a Todo List Reducer - Toggling a Todo</h2>
+
+<p><a href="http://jsbin.com/moyepe/edit?js,console">JS Bin Demo</a></p>
+
+<pre><code>const todos = (state=[],action) =&gt; {
+  switch(action.type) {
+    case 'ADD_TODO':
+      return[
+        ...state,
+        {
+          id: action.id,
+          text: action.text,
+          completed: false
+        }
+      ];
+        case 'TOGGLE_TODO':
+            return state.map(todo =&gt; {
+                if(todo.id !== action.id) {
+                    return todo;
+                }
+
+                return {...todo, completed: !todo.completed };
+            });
+    default:
+      return state;
+  }
+};
+
+
+
+const testAddTodo = () =&gt; {
+  const stateBefore = [];
+  const action = {
+    type: 'ADD_TODO',
+    id: 0,
+    text: 'Learn Redux'
+  };
+
+  const stateAfter = [
+    {
+      id:0,
+      text:'Learn Redux',
+      completed: false
+    }
+  ];
+
+  deepFreeze(stateBefore);
+    deepFreeze(action);
+
+  expect(
+    todos(stateBefore, action)
+  ).toEqual(stateAfter);
+};
+
+const testToggleTodo = () =&gt; {
+  const stateBefore = [
+    {
+      id:0,
+      text:'Learn Redux',
+      completed: false
+    },
+        {
+      id:1,
+      text:'Learn NodeJS',
+      completed: false
+    }
+  ];  
+  const action = {
+    type: 'TOGGLE_TODO',
+    id: 1
+  };
+    const stateAfter = [
+    {
+      id:0,
+      text:'Learn Redux',
+      completed: false
+    },
+        {
+      id:1,
+      text:'Learn NodeJS',
+      completed: true
+    }
+  ];  
+
+
+  deepFreeze(stateBefore);
+    deepFreeze(action);
+
+  expect(
+    todos(stateBefore, action)
+  ).toEqual(stateAfter);
+};
+
+testAddTodo();
+testToggleTodo();
+console.log('All tests passed.')
+</code></pre>
+
+<h2>
+<a id="13-reducer-composition-with-arrays" class="anchor" href="#13-reducer-composition-with-arrays" aria-hidden="true"><span class="octicon octicon-link"></span></a>13. Reducer Composition with Arrays</h2>
+
+<p><a href="http://jsbin.com/mumaya/edit?js,console">JS Bin Demo</a></p>
+
+<pre><code>const todo = (state, action) =&gt; {
+    switch(action.type) {
+        case 'ADD_TODO':
+            return {
+                id: action.id,
+                text: action.text,
+                completed: false
+            };
+        case 'TOGGLE_TODO':
+            if(state.id !== action.id) {
+                return state;
+            }
+
+            return {
+                ...state,
+                completed: !state.completed
+            };
+        default:
+            return state;
+    }
+};
+
+
+const todos = (state=[],action) =&gt; {
+  switch(action.type) {
+    case 'ADD_TODO':
+      return[
+        ...state,
+        todo(undefined, action)
+      ];
+        case 'TOGGLE_TODO':
+            return state.map(t =&gt; todo(t,action));
+    default:
+      return state;
+  }
+};
+</code></pre>
+
+<h2>
+<a id="14-reducer-composition-with-objects" class="anchor" href="#14-reducer-composition-with-objects" aria-hidden="true"><span class="octicon octicon-link"></span></a>14. Reducer Composition with Objects</h2>
+
+<p><a href="http://jsbin.com/wivutu/edit?js,console">JS Bin Demo</a></p>
+
+<pre><code>const todo = (state, action) =&gt; {
+    switch(action.type) {
+        case 'ADD_TODO':
+            return {
+                id: action.id,
+                text: action.text,
+                completed: false
+            };
+        case 'TOGGLE_TODO':
+            if(state.id !== action.id) {
+                return state;
+            }
+
+            return {
+                ...state,
+                completed: !state.completed
+            };
+        default:
+            return state;
+    }
+};
+
+
+const todos = (state=[],action) =&gt; {
+  switch(action.type) {
+    case 'ADD_TODO':
+      return[
+        ...state,
+        todo(undefined, action)
+      ];
+        case 'TOGGLE_TODO':
+            return state.map(t =&gt; todo(t,action));
+    default:
+      return state;
+  }
+};
+
+
+const visibilityFilter = (
+  state = 'SHOW_ALL',
+  action
+  ) =&gt; {
+    switch(action.type) {
+        case 'SET_VISIBILITY_FILTER':
+            return action.filter;
+        default:
+            return state;
+    }
+};
+
+
+const todoApp = (state ={}, action) =&gt; {
+    return {
+        todos: todo(state.todos, action),
+        visibilityFilter: visibilityFilter(state.visibilityFilter, action)
+    };
+};
+
+
+const {createStore} = Redux;
+const store = createStore(todoApp);
+</code></pre>
+
+<h2>
+<a id="15-reducer-composition-with-combinereducers" class="anchor" href="#15-reducer-composition-with-combinereducers" aria-hidden="true"><span class="octicon octicon-link"></span></a>15. Reducer Composition with combineReducers()</h2>
+
+<p><a href="http://jsbin.com/puqalo/edit?js,console">JS Bin Demo</a></p>
+
+<pre><code>const todoApp = (state ={}, action) =&gt; {
+    return {
+        todos: todo(state.todos, action),
+        visibilityFilter: visibilityFilter(state.visibilityFilter, action)
+    };
+};
+</code></pre>
+
+<p>This pattern is so common in most of the Redux-Apps.</p>
+
+<p>Thats why Redux provides a function called <code>{combineReducers}</code></p>
+
+<pre><code>const {combineReducers} = Redux;
+
+const todoApp = combineReducers ({
+  todos: todos,
+  visibilityFilter : visibilityFilter
+  });
+</code></pre>
+
+<p>The Keys of the object that configured in the combineReducers denotes the fields  of the state object.</p>
+
+<p>The Values of the object that configured in the combineReducers denotes the reducers it should call to update the corresponding state fields.</p>
+
+<p>Let's establish a useful convention.  I'll always name my Reducers after the state keys they manage.</p>
+
+<p>Thanks to ES6 Object literal shorthand notation.</p>
+
+<pre><code>const {combineReducers} = Redux;
+
+const todoApp = combineReducers ({ todos,  visibilityFilter  });
+</code></pre>
+
+<h2>
+<a id="16-implementing-combinereducers-from-scratch" class="anchor" href="#16-implementing-combinereducers-from-scratch" aria-hidden="true"><span class="octicon octicon-link"></span></a>16. Implementing combineReducers() from Scratch</h2>
+
+<p><a href="http://jsbin.com/tazuzi/edit?js,console">JS Bin Demo</a></p>
+
+<p>To gain deeper understanding of combineReducers works, let us implement it from Scratch.</p>
+
+<pre><code>const combineReducers = (reducers) =&gt; {
+  return (state = {}, action) =&gt; {
+    return Object.keys(reducers).reduce(
+      (nextState, key) =&gt; {
+        nextState[key] = reducers[key](
+          state[key],
+          action
+        );
+        return nextState;
+      }, {}
+    );
+  };
+};
+</code></pre>
+
+<h2>
+<a id="17-react-todo-list-example-adding-a-todo" class="anchor" href="#17-react-todo-list-example-adding-a-todo" aria-hidden="true"><span class="octicon octicon-link"></span></a>17. React ToDo List Example (Adding a ToDo)</h2>
+
+<p><a href="http://jsbin.com/nimeqe/edit?html,js,output">JS Bin Demo</a></p>
+
+<pre><code>
+const { Component } = React;
+
+let nextTodoId = 0;
+
+class TodoApp extends Component {
+    render() {
+        return (
+          &lt;div&gt;
+            &lt;input ref={ node =&gt; {
+            this.input = node;
+            }} /&gt;
+              &lt;button onClick={()=&gt; {
+                store.dispatch({
+                        type: 'ADD_TODO',
+                        text: this.input.value,
+                        id: nextTodoId++
+                    });
+            this.input.value = '';
+        }}&gt;
+      Add Todo
+        &lt;/button&gt;
+        &lt;ul&gt;
+            {this.props.todos.map(todo =&gt;
+             &lt;li key = {todo.id}&gt;
+              {todo.text}
+            &lt;/li&gt;
+             )}
+        &lt;/ul&gt;
+            &lt;/div&gt;
+        );
+    }
+}
+
+const render = () =&gt; {
+    ReactDOM.render(
+    &lt;TodoApp
+        todos={store.getState().todos}
+  /&gt;,
+    document.getElementById('root')
+    );
+};
+
+store.subscribe(render);
+render();
+</code></pre>
+
+<h2>
+<a id="18-react-todo-list-example-toggling-a-todo" class="anchor" href="#18-react-todo-list-example-toggling-a-todo" aria-hidden="true"><span class="octicon octicon-link"></span></a>18. React ToDo List Example (Toggling a ToDo)</h2>
+
+<p><a href="http://jsbin.com/kozaba/edit?html,js,output">JS Bin Demo</a></p>
+
+<pre><code>&lt;ul&gt;
+  {this.props.todos.map(todo =&gt;
+   &lt;li  key = {todo.id}
+        onClick={()=&gt;{
+                 store.dispatch({
+                 type: 'TOGGLE_TODO',
+                 id: todo.id
+                });
+        }}
+        style = {{
+          textDecoration: todo.completed ? 'line-through' : 'none'
+                }}&gt;
+  {todo.text}
+  &lt;/li&gt;
+   )}
+&lt;/ul&gt;
+</code></pre>
+
+<h2>
+<a id="19-react-todo-list-example-filtering-a-todo" class="anchor" href="#19-react-todo-list-example-filtering-a-todo" aria-hidden="true"><span class="octicon octicon-link"></span></a>19. React ToDo List Example (Filtering a ToDo)</h2>
+
+<p><a href="http://jsbin.com/zedafi/edit?html,js,output">JS Bin Demo</a></p>
+
+<pre><code>const FilterLink = ({
+  filter,
+  currentFilter,
+  children
+}) =&gt; {
+  if (filter === currentFilter) {
+    return &lt;span &gt; {
+      children
+    } &lt; /span&gt;;
+  }
+  return ( &lt; a href = '#'
+    onClick = {
+      e =&gt; {
+        e.preventDefault();
+        store.dispatch({
+          type: 'SET_VISIBILITY_FILTER',
+          filter
+        });
+      }
+    } &gt; {
+      children
+    } &lt; /a&gt;
+  );
+
+};
+</code></pre>
+
+<pre><code>const getVisibleTodos = (
+  todos, filter
+) =&gt; {
+  switch (filter) {
+    case 'SHOW_ALL':
+      return todos;
+    case 'SHOW_COMPLETED':
+      return todos.filter(t =&gt; t.completed);
+    case 'SHOW_ACTIVE':
+      return todos.filter(t =&gt; !t.completed);
+  }
+};
+</code></pre>
+
+<pre><code>&lt; p &gt;
+  Show: {
+    ' '
+  } &lt; FilterLink filter = 'SHOW_ALL'
+currentFilter = {
+  visibilityFilter
+} &gt; All &lt; /FilterLink&gt; {
+' '
+} &lt; FilterLink filter = 'SHOW_ACTIVE'
+currentFilter = {
+  visibilityFilter
+} &gt; Active &lt; /FilterLink&gt; {
+' '
+} &lt; FilterLink filter = 'SHOW_COMPLETED'
+currentFilter = {
+  visibilityFilter
+} &gt; Completed &lt; /FilterLink&gt; &lt; /p &gt;
+
+</code></pre>
+
+<h2>
+<a id="20-extracting-presentational-components-todo-todo-list" class="anchor" href="#20-extracting-presentational-components-todo-todo-list" aria-hidden="true"><span class="octicon octicon-link"></span></a>20. Extracting Presentational components (ToDo, ToDo List)</h2>
+
+<p><a href="http://jsbin.com/nefefi/edit?js,output">JS Bin Demo</a></p>
+
+<p>Let's Extract the ToDo Component.</p>
+
+<pre><code>const Todo = ({ onClick,completed, text }) =&gt; (
+    &lt;li
+      onClick = {onClick}
+    style = {{textDecoration: completed ? 'line-through' : 'none'}}&gt;
+        {text}
+    &lt;/li&gt;
+);
+</code></pre>
+
+<p>Now, Extract the TodoList Component.</p>
+
+<pre><code>const TodoList = ({ todos,  onTodoClick }) =&gt; (
+    &lt;ul&gt;
+      {todos.map(todo =&gt;
+                  &lt;Todo
+                    key={todo.id}
+              {...todo}
+              onClick={() =&gt; onTodoClick(todo.id)}
+          /&gt;
+      )}
+    &lt;/ul&gt;
+);
+
+</code></pre>
+
+<p>Now, in the render method, repalce the <code>&lt;ul&gt;</code> with our extracted component.</p>
+
+<pre><code>&lt;TodoList
+  todos = {visibleTodos}
+   onTodoClick = {id =&gt;
+      store.dispatch({
+        type: 'TOGGLE_TODO',
+        id
+      })
+  } /&gt;
+</code></pre>
+
+<h2>
+<a id="21-extracting-presentational-components-add-todo-footer-filter-link" class="anchor" href="#21-extracting-presentational-components-add-todo-footer-filter-link" aria-hidden="true"><span class="octicon octicon-link"></span></a>21. Extracting Presentational components (Add ToDo, Footer, Filter Link)</h2>
+
+<p><a href="http://jsbin.com/tedoqi/edit?html,js,output">JS Bin Demo</a></p>
+
+<p>Add ToDo</p>
+
+<pre><code>const AddTodo = ({onAddClick}) =&gt; {
+    let input;
+
+    return (
+      &lt;div&gt;
+        &lt;input ref = { node =&gt; {input = node;}}/&gt;
+        &lt;button onClick = { () =&gt; {
+                            onAddClick(input.value);
+                            input.value = '';
+                    }}&gt;
+                        Add Todo
+        &lt;/button&gt;
+            &lt;/div&gt;
+            );
+};
+</code></pre>
+
+<p>Footer</p>
+
+<pre><code>const Footer = ({visibilityFilter, onFilterClick}) =&gt; (
+                &lt;p&gt;
+           Show :
+             {' '}
+             &lt;FilterLink filter = 'SHOW_ALL'  currentFilter = {visibilityFilter} onClick={onFilterClick}&gt;
+                             All
+                         &lt;/FilterLink&gt;
+             {' ,  '}
+             &lt;FilterLink filter = 'SHOW_ACTIVE'  currentFilter = {visibilityFilter} onClick={onFilterClick}&gt;
+                             Active
+                         &lt;/FilterLink&gt;
+             {' ,  '}
+             &lt;FilterLink filter = 'SHOW_COMPLETED'  currentFilter = {visibilityFilter} onClick={onFilterClick}&gt;
+                             Completed
+                         &lt;/FilterLink&gt;
+        &lt;/p&gt;
+);
+</code></pre>
+
+<p>Filter Link</p>
+
+<pre><code>const FilterLink = ({ filter, currentFilter, children, onClick }) =&gt; {
+
+    if (filter === currentFilter) {
+    return &lt;span&gt; {children} &lt;/span&gt;;
+    }
+
+    return (
+        &lt;a
+        href = '#'
+        onClick = { e =&gt; {
+                    e.preventDefault();
+                    onClick(filter)
+                  }
+        }&gt;
+      {children}
+    &lt;/a&gt;
+  );
+};
+</code></pre>
+
+<p>The final ToDoApp component</p>
+
+<pre><code>const TodoApp = ({todos, visibilityFilter}) =&gt; (
+      &lt;div&gt;
+
+            &lt;AddTodo
+                  onAddClick={text=&gt;
+                    store.dispatch({
+                      type:'ADD_TODO',
+                      id:nextTodoId++,
+                      text
+                })
+                  }
+        /&gt;
+
+        &lt;TodoList
+          todos = {getVisibleTodos(todos, visibilityFilter)}
+             onTodoClick = {id =&gt;
+              store.dispatch({
+                type: 'TOGGLE_TODO',
+                id
+              })
+          } /&gt;
+
+                    &lt;Footer
+                      visibilityFilter={visibilityFilter}
+                        onFilterClick={filter =&gt;
+                          store.dispatch({
+                                    type: 'SET_VISIBILITY_FILTER',
+                                    filter
+                                    })
+                        }
+                    /&gt;
+      &lt;/div&gt;
+    );
+</code></pre>
+
+<p>Separation of Presentational Component, decouples the rendering from REDUX.</p>
+
+<p>This has a downside of passing too many properties to the component, which can be resolved using <strong>Container Components</strong>.</p>
+
+<h2>
+<a id="22-extracting-container-components-filter-link" class="anchor" href="#22-extracting-container-components-filter-link" aria-hidden="true"><span class="octicon octicon-link"></span></a>22. Extracting Container components (Filter Link)</h2>
+
+<p><a href="http://jsbin.com/woloqo/edit?html,js,output">JS Bin Demo</a></p>
+
+<p>In previous step, <strong>Footer</strong> component passes down <code>visibilityFilter</code> and <code>onFilterClick</code> to the <strong>FilterLink</strong> component, even though <strong>Footer</strong> doesn't use this properties directly.</p>
+
+<p>In this way, it breaks encapsulation where the <strong>ParentComponent</strong> needs to know too much about the <strong>ChildComponent</strong>.</p>
+
+<p>Thats why we need to extract the <strong>Container Components</strong>, just like the way we extracted <strong>Presentational Components</strong>.</p>
+
+<p>Let's start refactoring with the <strong>Footer</strong> component by removing the properties <code>visibilityFilter</code> and <code>onFilterClick</code>.</p>
+
+<p>In from ToDoApp Component,</p>
+
+<pre><code>&lt;Footer /&gt;
+</code></pre>
+
+<p>And from the Footer Component</p>
+
+<pre><code>const Footer = () =&gt; (
+                &lt;p&gt;
+           Show :
+             {' '}
+             &lt;FilterLink filter = 'SHOW_ALL'&gt;All&lt;/FilterLink&gt;
+             {' ,  '}
+             &lt;FilterLink filter = 'SHOW_ACTIVE'&gt;Active&lt;/FilterLink&gt;
+             {' ,  '}
+             &lt;FilterLink filter = 'SHOW_COMPLETED'&gt;Completed&lt;/FilterLink&gt;
+        &lt;/p&gt;
+);
+</code></pre>
+
+<p>This may seem like the same component before extracting to <strong>Presentational Component</strong>.</p>
+
+<p>But what we are going to do is bit Different.</p>
+
+<p>Let's have a look at <strong>Filter</strong> Component.</p>
+
+<pre><code>const FilterLink = ({ filter, currentFilter, children, onClick }) =&gt; {
+
+    if (filter === currentFilter) {
+    return &lt;span&gt; {children} &lt;/span&gt;;
+    }
+
+    return (
+        &lt;a
+        href = '#'
+        onClick = { e =&gt; {
+                    e.preventDefault();
+                    onClick(filter)
+                  }
+        }&gt;
+      {children}
+    &lt;/a&gt;
+  );
+};
+</code></pre>
+
+<p>The FilterLink</p>
+
+<ul>
+<li>doesn't specify the behaviour for Clicking on the link.</li>
+<li>It also needs the current filter to tell whether its active or not to render.</li>
+</ul>
+
+<p>Honestly, this is not a <strong>Presentational Component</strong>, because its not separable with its behaviour.</p>
+
+<p>The only reasonable  reaction to clicking on it is to set visibilityFilter by dispatching an action.</p>
+
+<p>This is why we should change it different <strong>Presentational Component</strong> as follows.</p>
+
+<pre><code>const Link = ({ active, children, onClick }) =&gt; {
+
+    if (active) {
+    return &lt;span&gt; {children} &lt;/span&gt;;
+    }
+
+    return (
+        &lt;a
+        href = '#'
+        onClick = { e =&gt; {
+              e.preventDefault();
+            onClick();
+        }}
+        &gt;
+            {children}
+    &lt;/a&gt;
+  );
+};
+</code></pre>
+
+<p>The <strong>Link</strong> component doesn't know anything about filtering.</p>
+
+<ul>
+<li>It only accepts <code>active</code> property</li>
+<li>Handles click through <code>onClick()</code>
+</li>
+</ul>
+
+<p>Let us create another component <strong>FilterLink</strong> as a container that uses <strong>Link</strong> to render it.
+Its gonna render the <strong>Link</strong> from the current data from <code>store</code>.</p>
+
+<p>Its going to</p>
+
+<ul>
+<li>read the props from the component props.</li>
+<li>read the state from redux's store state</li>
+</ul>
+
+<pre><code>class FilterLink extends Component {
+
+    render() {
+        const props = this.props;
+        const state = store.getState();
+    }
+}
+
+</code></pre>
+
+<p>As a <strong>Container Component</strong> the <strong>FilterLink</strong> doesn't have its own mark up.
+It delegates the rendering through the <strong>Link Presentational Component</strong>.</p>
+
+<p>In this case it calculates it's <code>active</code> props, by comparing with the redux store state's <code>visibilityFilter</code>.</p>
+
+<p>The <code>filter</code> props is the one we passed from the <strong>Footer</strong> component.
+The <code>visibilityFilter</code> corresponds to the currently chosen <code>visibilityFilter</code>.</p>
+
+<p>I these 2 filters matches, then we make the link to appear active.</p>
+
+<pre><code>&lt;Link  
+    active = { props.filter === state.visibilityFilter } &gt;
+&lt;/Link&gt;
+</code></pre>
+
+<p>The Container Component also needs to define the  <strong>behaviour</strong>.</p>
+
+<p>In this case, the <strong>FilterLink</strong> specifies when this particular link is clicked,</p>
+
+<ul>
+<li>dispatch an <code>action</code> with the type <code>SET_VISIBILITY_FILTER</code>
+</li>
+<li>take the <code>filter</code> value from the props</li>
+</ul>
+
+<p>The filter link may contain children which is used as content of the <strong>Link</strong></p>
+
+<pre><code>&lt;Link
+  active = { props.filter === state.visibilityFilter }
+  onClick={() =&gt;
+    store.dispatch({
+      type: 'SET_VISIBILITY_FILTER',
+      filter: props.filter
+    })
+  }&gt;
+  {props.children}
+&lt;/Link&gt;
+</code></pre>
+
+<p>return this <code>Link</code> markup and the <code>FilterComponent</code> becomes like this.</p>
+
+<pre><code>class FilterLink extends Component {
+
+ render() {
+   const props = this.props;
+   const state = store.getState();
+
+   return (
+     &lt;Link
+       active = { props.filter === state.visibilityFilter }
+       onClick={() =&gt;
+         store.dispatch({
+           type: 'SET_VISIBILITY_FILTER',
+           filter: props.filter
+         })
+       }
+     &gt; {props.children}
+     &lt;/Link&gt;
+   );
+ }
+}
+
+</code></pre>
+
+<p>There is a small problem with the implementation of <strong>FilterLink</strong>.
+Inside the <code>render()</code> it reads the current state of the ReduxStore, but it is not subscribed to the Store.</p>
+
+<p>So if the ParentComponent doesn't updated when the store is updated,
+its going to render the child value.</p>
+
+<p>Currently we re-render the whole application when the state changes, which is not efficient.</p>
+
+<p>So in future, we will move subscription to the store to the LifeCycle methods of <strong>Container Component</strong>.</p>
+
+<p>React provides a special <code>forceUpdate()</code> method on the component instances.</p>
+
+<p>To force the re-rendering. And we are going to use it inside <code>store.subscribe()</code> ,
+so that whenever the store's state changes we can forceUpdate the <strong>Container Component</strong></p>
+
+<pre><code>componentDidMount() {
+  store.subscribe(()=&gt;
+    this.forceUpdate()
+  );
+}
+</code></pre>
+
+<p>We did the <code>forceUpdate</code> inside <code>componentDidMount()</code>. We need to <code>unsubscribe</code> inside <code>componentWillUnMount()</code></p>
+
+<pre><code>componentWillUnMount() {
+  this.unsubscribe();
+}
+
+</code></pre>
+
+<p>React doesn't provide <code>unsubscribe()</code> . Its a return value from <code>store.subscribe()</code>.</p>
+
+<pre><code>componentDidMount() {
+  this.unsubscribe = store.subscribe(()=&gt;
+    this.forceUpdate()
+  );
+}
+
+componentWillUnMount() {
+  this.unsubscribe();
+}
+</code></pre>
+
+<p>So our <code>FilterLink</code> becomes like this.</p>
+
+<pre><code>class FilterLink extends Component {
+
+    componentDidMount() {
+        this.unsubscribe = store.subscribe(()=&gt;
+            this.forceUpdate()
+        );
+    }
+
+    componentWillUnMount() {
+        this.unsubscribe();
+    }
+
+
+    render() {
+        const props = this.props;
+        const state = store.getState();
+
+        return (
+          &lt;Link
+              active = {
+                props.filter === state.visibilityFilter
+              }
+              onClick={() =&gt;
+                  store.dispatch({
+                  type: 'SET_VISIBILITY_FILTER',
+                  filter: props.filter
+            })
+          }
+        &gt; {props.children}
+            &lt;/Link&gt;
+        );
+    }
+}
+
+</code></pre>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/Thiruppathi/react-redux-notes">React-redux-notes</a> is maintained by <a href="https://github.com/Thiruppathi">Thiruppathi</a>.</span>
