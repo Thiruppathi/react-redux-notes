@@ -944,5 +944,234 @@ const Footer = () => (
              <FilterLink filter = 'SHOW_COMPLETED'>Completed</FilterLink>
         </p>
 );
+```
+
+This may seem like the same component before extracting to **Presentational Component**.
+
+But what we are going to do is bit Different.
+
+
+Let's have a look at **Filter** Component.
+```
+const FilterLink = ({ filter, currentFilter, children, onClick }) => {
+
+	if (filter === currentFilter) {
+    return <span> {children} </span>;
+	}
+
+	return (
+		<a
+        href = '#'
+        onClick = { e => {
+                    e.preventDefault();
+                    onClick(filter)
+                  }
+        }>
+      {children}
+    </a>
+  );
+};
+```
+
+The FilterLink
+ - doesn't specify the behaviour for Clicking on the link.
+ - It also needs the current filter to tell whether its active or not to render.
+
+Honestly, this is not a **Presentational Component**, because its not separable with its behaviour.
+
+The only reasonable  reaction to clicking on it is to set visibilityFilter by dispatching an action.
+
+This is why we should change it different **Presentational Component** as follows.
+
+```
+const Link = ({ active, children, onClick }) => {
+
+	if (active) {
+    return <span> {children} </span>;
+	}
+
+	return (
+		<a
+        href = '#'
+        onClick = { e => {
+		      e.preventDefault();
+        	onClick();
+        }}
+		>
+			{children}
+    </a>
+  );
+};
+```
+
+The **Link** component doesn't know anything about filtering.
+
+- It only accepts `active` property
+- Handles click through `onClick()`
+
+Let us create another component **FilterLink** as a container that uses **Link** to render it.
+Its gonna render the **Link** from the current data from `store`.
+
+Its going to
+- read the props from the component props.
+- read the state from redux's store state
+
+
+```
+class FilterLink extends Component {
+
+	render() {
+		const props = this.props;
+		const state = store.getState();
+	}
+}
+
+```
+As a **Container Component** the **FilterLink** doesn't have its own mark up.
+It delegates the rendering through the **Link Presentational Component**.
+
+In this case it calculates it's `active` props, by comparing with the redux store state's `visibilityFilter`.
+
+The `filter` props is the one we passed from the **Footer** component.
+The `visibilityFilter` corresponds to the currently chosen `visibilityFilter`.
+
+I these 2 filters matches, then we make the link to appear active.
+
+```
+<Link  
+    active = { props.filter === state.visibilityFilter } >
+</Link>
+```
+
+The Container Component also needs to define the  **behaviour**.
+
+In this case, the **FilterLink** specifies when this particular link is clicked,
+- dispatch an `action` with the type `SET_VISIBILITY_FILTER`
+- take the `filter` value from the props
+
+The filter link may contain children which is used as content of the **Link**
+
+```
+<Link
+  active = { props.filter === state.visibilityFilter }
+  onClick={() =>
+    store.dispatch({
+      type: 'SET_VISIBILITY_FILTER',
+      filter: props.filter
+    })
+  }>
+  {props.children}
+</Link>
+```
+
+return this `Link` markup and the `FilterComponent` becomes like this.
+
+
+```
+class FilterLink extends Component {
+
+ render() {
+   const props = this.props;
+   const state = store.getState();
+
+   return (
+     <Link
+       active = { props.filter === state.visibilityFilter }
+       onClick={() =>
+         store.dispatch({
+           type: 'SET_VISIBILITY_FILTER',
+           filter: props.filter
+         })
+       }
+     > {props.children}
+     </Link>
+   );
+ }
+}
+
+```
+
+There is a small problem with the implementation of **FilterLink**.
+Inside the `render()` it reads the current state of the ReduxStore, but it is not subscribed to the Store.
+
+So if the ParentComponent doesn't updated when the store is updated,
+its going to render the child value.
+
+Currently we re-render the whole application when the state changes, which is not efficient.
+
+So in future, we will move subscription to the store to the LifeCycle methods of **Container Component**.
+
+React provides a special `forceUpdate()` method on the component instances.
+
+To force the re-rendering. And we are going to use it inside `store.subscribe()` ,
+so that whenever the store's state changes we can forceUpdate the **Container Component**
+
+```
+componentDidMount() {
+  store.subscribe(()=>
+    this.forceUpdate()
+  );
+}
+```
+
+We did the `forceUpdate` inside `componentDidMount()`. We need to `unsubscribe` inside `componentWillUnMount()`
+
+```
+componentWillUnMount() {
+  this.unsubscribe();
+}
+
+```
+
+React doesn't provide `unsubscribe()` . Its a return value from `store.subscribe()`.
+
+```
+componentDidMount() {
+  this.unsubscribe = store.subscribe(()=>
+    this.forceUpdate()
+  );
+}
+
+componentWillUnMount() {
+  this.unsubscribe();
+}
+```
+
+So our `FilterLink` becomes like this.
+
+```
+class FilterLink extends Component {
+
+	componentDidMount() {
+		this.unsubscribe = store.subscribe(()=>
+			this.forceUpdate()
+		);
+	}
+
+	componentWillUnMount() {
+		this.unsubscribe();
+	}
+
+
+	render() {
+		const props = this.props;
+		const state = store.getState();
+
+		return (
+		  <Link
+			  active = {
+			    props.filter === state.visibilityFilter
+			  }
+			  onClick={() =>
+				  store.dispatch({
+			      type: 'SET_VISIBILITY_FILTER',
+			      filter: props.filter
+  		    })
+    	  }
+	    > {props.children}
+			</Link>
+		);
+	}
+}
 
 ```
