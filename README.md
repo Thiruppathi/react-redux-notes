@@ -910,13 +910,39 @@ const TodoApp = ({todos, visibilityFilter}) => (
 
 Separation of Presentational Component, decouples the rendering from REDUX.
 
-This has a downside of passing too many properties to the component, which can be resolved using **Container Components**
+This has a downside of passing too many properties to the component, which can be resolved using **Container Components**.
 
 
 ## 22. Extracting Container components (Filter Link)
 
 [JS Bin Demo](http://jsbin.com/woloqo/edit?html,js,output)
 
+In previous step, **Footer** component passes down `visibilityFilter` and `onFilterClick` to the **FilterLink** component, even though **Footer** doesn't use this properties directly.
+
+In this way, it breaks encapsulation where the **ParentComponent** needs to know too much about the **ChildComponent**.
+
+Thats why we need to extract the **Container Components**, just like the way we extracted **Presentational Components**.
+
+Let's start refactoring with the **Footer** component by removing the properties `visibilityFilter` and `onFilterClick`.
+
+In from ToDoApp Component,
 ```
+<Footer	/>
+ ```
+
+And from the Footer Component
+
+```
+const Footer = () => (
+				<p>
+           Show :
+             {' '}
+             <FilterLink filter = 'SHOW_ALL'>All</FilterLink>
+             {' ,  '}
+             <FilterLink filter = 'SHOW_ACTIVE'>Active</FilterLink>
+             {' ,  '}
+             <FilterLink filter = 'SHOW_COMPLETED'>Completed</FilterLink>
+        </p>
+);
 
 ```
