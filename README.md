@@ -1175,3 +1175,21 @@ class FilterLink extends Component {
 }
 
 ```
+
+Thus, the **Link** Component only takes care of the *appearance* based on `active` props. It doesn't know about the *behaviour*
+The **FilterLink**  is a **Container Component** which provides *data* and *behaviour* to the **Presentational Component (Link)** .
+
+When it mounts, it subscribes to the store, so it independently re-renders whenever the store state's changes.
+Instead of providing its own DOM Tree, it delegates the rendering to the **Presentational Component (Link)**.
+
+It's only job is to calculate the props based on the **FilterLink**'s own props and the CurrentState of the Redux Store.
+
+And it also specifies the callback that are going to dispatch the action to the Store.
+After action is dispatched, the store will remember the new state returned by the Reducer, and it will call every Subscriber to the store.
+
+In this case, every **FilterLink** Component instance is subscribed to the store, so they will all have their `forceUpdate()` called on them.
+And they will re-render according to the Current Store State.
+
+**FilterLink** is self sufficient that it can be used in any component, with out needing to pass any props to it.
+
+This makes the entire **Footer** Component simple and decoupled from the behaviour.
