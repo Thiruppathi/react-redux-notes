@@ -1351,4 +1351,208 @@ As a good practice
 - If there's too much boilerplate code, passing too many props, then you can extract **ContainerComponent** around them.
 
 ## 24. Passing the Store Down Explicitly via Props
+
 [JS Bin Demo](http://jsbin.com/copufu/edit?html,js,output)
+
+Managing store in a single file is not possible for RealTime Apps.
+ - Single Store Reference makes Testing harder for Container Components. ( You may want a Mock Store for Testing Purpose)
+ - Server Side Rendering becomes complex, where it has to use a different Store instance based on data.
+
+
+Let us move the store creation code next to `ReactOM.render()`
+
+```
+const { createStore } = Redux;
+
+const store = createStore(todoApp);
+
+ReactDOM.render(
+	<TodoApp />,
+	document.getElementById('root')
+);
+```
+
+Now lets inject the createStore(todoApp) to the `<TodoApp/>` component as follows
+
+```
+const { createStore } = Redux;
+
+ReactDOM.render(
+	<TodoApp store={createStore(todoApp)} />,
+	document.getElementById('root')
+);
+```
+
+Unfortunately we have to pass the store to every component as `props`.
+
+```
+const TodoApp = ({store}) => (
+      <div>
+			  <AddTodo store={store} />
+        <VisibleTodoList store={store} />
+				<Footer	store={store} />
+      </div>
+    );
+```
+
+
+Its less effort than passing props to the component; still its inefficient.
+We'll find a better solution to this later; Let us proceed like this to focus on the problem.
+
+The problem is that the **Container Component** needs to have the store instance to get the state from the dispatch actions and subscribe to the changes.
+
+So we should update the **Container Components** to get the Store from `props`.
+
+Lets start with `VisibleTodoList` by updating the `componentDidMount()` and `render()`
+
+```
+componentDidMount() {
+  const { store } = this.props;
+  this.unsubscribe = store.subscribe(()=>
+    this.forceUpdate()
+  );
+}
+```
+
+```
+render() {
+  const props = this.props;
+  const { store } = props;
+  const state = store.getState();
+
+  ....
+  ....
+}
+```
+
+Now the `VisibleTodoList` looks like this.
+
+```
+class VisibleTodoList extends Component {
+
+	componentDidMount() {
+    const { store } = this.props;
+		this.unsubscribe = store.subscribe(()=>
+			this.forceUpdate()
+		);
+	}
+
+	componentWillUnMount() {
+		this.unsubscribe();
+	}
+
+  render() {
+    const props = this.props;
+    const { store } = props;
+    const state = store.getState();
+
+		return(
+    <TodoList
+      todos={
+        getVisibleTodos(
+          state.todos,
+          state.visibilityFilter
+          )
+      }
+      onTodoClick={id=>
+        store.dispatch({
+          type: 'TOGGLE_TODO',
+          id
+          })
+      }
+      />
+    );
+  }
+}
+```
+
+Let's follow the same steps to update remaining **Container Components**
+
+**AddTodo**
+
+```
+const AddTodo = ({ store }) => {
+	let input;
+
+	return (
+      <div>
+        <input ref = { node => {input = node;}}/>
+        <button onClick = { () => {
+                store.dispatch({
+                  type:'ADD_TODO',
+                  id:nextTodoId++,
+                  text: input.value
+                })
+							input.value = '';
+					}}>
+						Add Todo
+        </button>
+			</div>
+			);
+};
+```
+
+**Footer**
+```
+const Footer = ({ store }) => (
+				<p>
+           Show :
+             {' '}
+             <FilterLink filter = 'SHOW_ALL' store={store}>All</FilterLink>
+             {' ,  '}
+             <FilterLink filter = 'SHOW_ACTIVE' store={store}>Active</FilterLink>
+             {' ,  '}
+             <FilterLink filter = 'SHOW_COMPLETED' store={store}>Completed</FilterLink>
+        </p>
+);
+```
+**FilterLink**
+```
+class FilterLink extends Component {
+
+	componentDidMount() {
+    const { store } = this.props;
+		this.unsubscribe = store.subscribe(()=>
+			this.forceUpdate()
+		);
+	}
+
+	componentWillUnMount() {
+		this.unsubscribe();
+	}
+
+
+	render() {
+		const props = this.props;
+    const { store } = props;		
+		const state = store.getState();
+
+		return (
+		  <Link
+			  active = {
+			    props.filter === state.visibilityFilter
+			  }
+			  onClick={() =>
+				  store.dispatch({
+			      type: 'SET_VISIBILITY_FILTER',
+			      filter: props.filter
+  		    })
+    	  }
+	    > {props.children}
+			</Link>
+		);
+	}
+}
+```
+
+Now all components read the Store from the props, and don't rely on the top level store.
+
+This change didnot affect the behaviour or the DataFlow of the application.
+
+The **ContainerComponent** subscribes to the Store, just like before and updates the state in response to the changes.
+
+What changed is how they access the store. Previously it accesses through top level variable, which doesn't scale much on Real World Applications.
+
+That's why we pass down the store as `props`, so that the **ContainerComponents** can subscribe to it.
+
+In future example, we'll see how to pass the store down to the **ContainerComponents** implicitly, but without introducing the top level variable.
