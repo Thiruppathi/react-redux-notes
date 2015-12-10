@@ -1341,3 +1341,11 @@ becomes like this
 	  document.getElementById('root')
   );
 ```
+
+Separating the Presentational & Container Components is a good practice in most cases.
+Only do this when it truly reduces the complexity of your code base.
+
+As a good practice
+
+- First extract the **Presentational Components**
+- If there's too much boilerplate code, passing too many props, then you can extract **ContainerComponent** around them.
