@@ -1193,3 +1193,151 @@ And they will re-render according to the Current Store State.
 **FilterLink** is self sufficient that it can be used in any component, with out needing to pass any props to it.
 
 This makes the entire **Footer** Component simple and decoupled from the behaviour.
+
+
+## 23. Extracting Container Component (Visible TodoList, AddTodo)
+
+[JS Bin Demo](http://jsbin.com/yasuca/edit?html,js,console,output)
+
+Lets start with extracting Container Component from **TodoList** to make it as a Presentational Component.
+
+```
+<TodoList
+  todos = {getVisibleTodos(todos, visibilityFilter)}
+   onTodoClick = {id =>
+      store.dispatch({
+        type: 'TOGGLE_TODO',
+        id
+      })
+  } />
+```
+
+I want to encapsulate currently visible todos, into a separate **ContainerComponent** which connects to the Redux Store.
+
+```
+class VisibleTodoList extends Component {
+
+	componentDidMount() {
+		this.unsubscribe = store.subscribe(()=>
+			this.forceUpdate()
+		);
+	}
+
+	componentWillUnMount() {
+		this.unsubscribe();
+	}
+
+  render() {
+    const props = this.props;
+    const state = store.getState();
+
+		return(
+    <TodoList
+      todos={
+        getVisibleTodos(
+          state.todos,
+          state.visibilityFilter
+          )
+      }
+      onTodoClick={id=>
+        store.dispatch({
+          type: 'TOGGLE_TODO',
+          id
+          })
+      }
+      />
+    );
+  }
+}
+```
+
+We no longer need to pass the props from the top. Lets update the `TodoApp` component with this newly created `VisibleTodoList` component.
+
+```
+const TodoApp = ({todos, visibilityFilter}) => (
+      <div>
+  			<AddTodo
+  			      onAddClick={text=>
+  			        store.dispatch({
+  			          type:'ADD_TODO',
+  			          id:nextTodoId++,
+  			          text
+            		})
+  			      }
+  	    />
+        <VisibleTodoList />
+				<Footer	/>
+      </div>
+    );
+```
+
+In previous section, we made `AddTodo` as a **Presentational Component**. Now let's  put back the behaviour to the `AddToDo`
+
+There isn't much behaviour and presentation in this component; in future we may need to extract the presentation based on the complexity.
+
+```
+const AddTodo = () => {
+	let input;
+
+	return (
+      <div>
+        <input ref = { node => {input = node;}}/>
+        <button onClick = { () => {
+                store.dispatch({
+                  type:'ADD_TODO',
+                  id:nextTodoId++,
+                  text: input.value
+                })
+							input.value = '';
+					}}>
+						Add Todo
+        </button>
+			</div>
+			);
+};
+```
+None of the Container component needs props from State, so we can remove the props of the `TodoApp` Component.
+This makes the Top Level component simpler.
+
+```
+const TodoApp = () => (
+      <div>
+  			<AddTodo />
+        <VisibleTodoList />
+				<Footer	/>
+      </div>
+    );
+```
+
+We can  remove  
+- `render()` function which renders the `<TodoApp>` with the current state of the app.
+- all the `props` that are related to the `state`
+- `store.subscribe(render)`
+- `render()`
+
+
+Because the ContainerComponent are going to Subscribe to the stores themselves.
+
+So the following code
+
+```
+const render = () => {
+  ReactDOM.render(
+		<TodoApp {...store.getState()}/>,
+	  document.getElementById('root')
+  );
+};
+
+store.subscribe(render);
+render();
+
+```
+
+becomes like this
+
+```
+  ReactDOM.render(
+		<TodoApp/>,
+	  document.getElementById('root')
+  );
+```
