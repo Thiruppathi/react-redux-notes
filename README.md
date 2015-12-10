@@ -1547,7 +1547,7 @@ class FilterLink extends Component {
 
 Now all components read the Store from the props, and don't rely on the top level store.
 
-This change didnot affect the behaviour or the DataFlow of the application.
+This change did not affect the behaviour or the DataFlow of the application.
 
 The **ContainerComponent** subscribes to the Store, just like before and updates the state in response to the changes.
 
@@ -1556,3 +1556,113 @@ What changed is how they access the store. Previously it accesses through top le
 That's why we pass down the store as `props`, so that the **ContainerComponents** can subscribe to it.
 
 In future example, we'll see how to pass the store down to the **ContainerComponents** implicitly, but without introducing the top level variable.
+
+
+## 25. Passing the Store Down Implicitly via Context
+[JS Bin Demo] (http://jsbin.com/yuhusa/edit?html,js,output)
+
+In the previous step, we got rid of the top level Store variable and passed it as a `prop` to the component.
+We had to write lot of boilerplate code to pass down the store as `props`;
+
+There is another way using the Advanced React feature called **Context**.
+
+Let us create a new Component called `Provider`.
+
+From its `render()` it just returns whatever it's the child is.
+So we can wrap any Component under `Provider` & its gonna render the Component.
+
+```
+class Provider extends Component {
+  render() {
+    return this.props.children;
+  }
+}
+```
+I'm going to update the `render()` to
+ - Render the `<TodoApp store={createStore(todoApp)}/>`  inside the `Provider`.
+ - Move the `store={createStore(todoApp)} ` to the `<Provider store={createStore(todoApp)}>`
+
+The `render()` will look like this.
+
+```
+ReactDOM.render(
+  <Provider store={createStore(todoApp)} >
+	 <TodoApp  />
+  </Provider>,
+	document.getElementById('root')
+);
+```
+
+The `Provider` Component will use React's advanced Context feature to make the Store available to any Component inside it including grandChildren.
+
+To do this, it has to define a special method called `getChildContext()`
+
+
+```
+class Provider extends Component {
+  getChildContext() {
+    return {
+      store: this.props.store
+    };
+  }
+  render() {
+    return this.props.children;
+  }
+}
+```
+
+ `store:this.props.store` is the `store` passed through `<Provider store={createStore(todoApp)}>` which will be part of the Context that the `Provider` specifies for its any Children & Grand Children.
+
+However, there is an important condition for the Context to work. i.e.,
+
+- You've to specify `childContextTypes` on the Component(`Provider`) that defines `getChildContext()`
+
+```
+Provider.childContextTypes = {
+  store: React.PropTypes.object
+}
+```
+
+These are just `React.PropTypes` definitions. But unlike `PropTypes`, these `childContextTypes` are essential for the `Context` to be turned on.
+If you don't specify them, no child components will receive the context.
+
+The **ContainerComponents** currently access the store through the props. Now you can access through `Context`
+
+```
+class VisibleTodoList extends Component {
+
+	componentDidMount() {
+    const { store } = this.props;
+		this.unsubscribe = store.subscribe(()=>
+			this.forceUpdate()
+		);
+	}
+
+	componentWillUnMount() {
+		this.unsubscribe();
+	}
+
+  render() {
+    const props = this.props;
+    const { store } = props;
+    const state = store.getState();
+
+		return(
+    <TodoList
+      todos={
+        getVisibleTodos(
+          state.todos,
+          state.visibilityFilter
+          )
+      }
+      onTodoClick={id=>
+        store.dispatch({
+          type: 'TOGGLE_TODO',
+          id
+          })
+      }
+      />
+    );
+  }
+}
+```
