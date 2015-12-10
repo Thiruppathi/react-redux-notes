@@ -1349,3 +1349,6 @@ As a good practice
 
 - First extract the **Presentational Components**
 - If there's too much boilerplate code, passing too many props, then you can extract **ContainerComponent** around them.
+
+## 24. Passing the Store Down Explicitly via Props
+[JS Bin Demo](http://jsbin.com/copufu/edit?html,js,output)
