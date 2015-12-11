@@ -2060,3 +2060,13 @@ Now the default behaviour will be, not subscribe to store and to inject just the
 ## 29. Generating Containers with connect() from React Redux (FooterLink)
 
 [JS Bin Demo](http://jsbin.com/venaha/edit?html,js,output)
+
+
+Let us refactor `FilterLink` **ContainerComponent** by start writing `mapStateToProps`
+
+Its going to accept the redux store's `state` as arg and return the props
+```
+const mapStateToLinkProps = ( state  ) => {
+  return {  active:  props.filter === state.visibilityFilter  }
+};
+```
