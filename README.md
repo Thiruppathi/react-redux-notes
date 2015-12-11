@@ -1797,3 +1797,31 @@ Unless you use it for Dependency Injection like here what we did to pass a singl
 
 Finally, the context API is not stable in React. It has changed before & likely to change again.
 So try your best not to rely on context too much.
+
+
+## 26. Passing the Store Down with &lt;Provide&gt; from React Redux
+
+[JS Bin Demo](http://jsbin.com/tulece/edit?html,js,output)
+
+In previous step, we've implemented `Provider` which uses React's Context to make the `store` available for every component it wraps.
+
+It's so convenient that you don't need to write this `Provider` implementation yourself.
+
+You can use a special library  `react-redux`
+
+```
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-redux/4.0.0/react-redux.js"></script>
+```
+
+This is redux binding to the react library.
+
+
+Get rid of the `Provider` implementation we wrote with the following piece of code.
+
+```
+const { Provider } = ReactRedux;
+
+// import { Provider } from 'react-redux'; // For ES6/Babel, npm
+// var Provider = require('react-redux').Provider; // For ES5 Code
+
+```
