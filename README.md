@@ -1624,7 +1624,7 @@ Provider.childContextTypes = {
 ```
 
 These are just `React.PropTypes` definitions. But unlike `PropTypes`, these `childContextTypes` are essential for the `Context` to be turned on.
-If you don't specify them, no child components will receive the context.
+If you don't specify them, no child components will receive this context.
 
 The **ContainerComponents** currently access the store through the props. Now you can access through `Context`
 
@@ -1632,7 +1632,7 @@ The **ContainerComponents** currently access the store through the props. Now yo
 class VisibleTodoList extends Component {
 
 	componentDidMount() {
-    const { store } = this.props;
+    const { store } = this.context;
 		this.unsubscribe = store.subscribe(()=>
 			this.forceUpdate()
 		);
@@ -1644,7 +1644,7 @@ class VisibleTodoList extends Component {
 
   render() {
     const props = this.props;
-    const { store } = props;
+    const { store } = this.context;
     const state = store.getState();
 
 		return(
@@ -1666,3 +1666,134 @@ class VisibleTodoList extends Component {
   }
 }
 ```
+
+We've to specify `contextTypes` for the ContainerComponent.
+
+```
+VisibleTodoList.contextTypes = {
+  store: React.PropTypes.object
+};
+```
+
+This is similar to `childContextTypes` but in this case we are specifying which `Context` to receive, not to pass down.
+If we don't define the `contextTypes` then the component will not receive the relevant `Context`
+
+
+What about the **FunctionalComponent** Which don't have `this`. e.g. `AddTodo`
+It turns out that it also receives the `Context`, but as the second argument, after the `props`
+```
+const AddTodo = (props, { store }) => {
+	let input;
+
+	return (
+      <div>
+        <input ref = { node => {input = node;}}/>
+        <button onClick = { () => {
+                store.dispatch({
+                  type:'ADD_TODO',
+                  id:nextTodoId++,
+                  text: input.value
+                })
+							input.value = '';
+					}}>
+						Add Todo
+        </button>
+			</div>
+			);
+};
+```
+Just like the ContainerComponent we need to specify `contextTypes` for this **FunctionalComponent** stating which `Context` it wants to receive.
+In this case, its the `store`.
+
+```
+AddTodo.contextTypes = {
+  store: React.PropTypes.object
+};
+```
+
+
+Let us update `FilterLink` Component now in the same way, to set the Context.
+
+```
+class FilterLink extends Component {
+
+	componentDidMount() {
+    const { store } = this.context;
+		this.unsubscribe = store.subscribe(()=>
+			this.forceUpdate()
+		);
+	}
+
+	componentWillUnMount() {
+		this.unsubscribe();
+	}
+
+
+	render() {
+		const props = this.props;
+    const { store } = this.context;		
+		const state = store.getState();
+
+		return (
+		  <Link
+			  active = {
+			    props.filter === state.visibilityFilter
+			  }
+			  onClick={() =>
+				  store.dispatch({
+			      type: 'SET_VISIBILITY_FILTER',
+			      filter: props.filter
+  		    })
+    	  }
+	    > {props.children}
+			</Link>
+		);
+	}
+}
+```
+
+```
+
+FilterLink.contextTypes = {
+  store: React.PropTypes.object
+};
+
+```
+
+As the `FilterLink` is self contained to get the `store` from the `context`, we don't have to pass them through the `Footer`.
+Let's get rid of it.
+
+```
+const Footer = () => (
+				<p>
+           Show :
+             {' '}
+             <FilterLink filter = 'SHOW_ALL'>All</FilterLink>
+             {' ,  '}
+             <FilterLink filter = 'SHOW_ACTIVE'>Active</FilterLink>
+             {' ,  '}
+             <FilterLink filter = 'SHOW_COMPLETED'>Completed</FilterLink>
+        </p>
+);
+```
+
+Also the `TodoApp`
+
+```
+const TodoApp = () => (
+      <div>
+			  <AddTodo />
+        <VisibleTodoList />
+				<Footer />
+      </div>
+    );
+
+```
+
+Context is a powerful feature, but in a way it contradicts the `React` Philosophy of the explicit data flow.
+The Context is essentially a Global Variable across the Component tree, but Global Variables are usually bad idea.
+
+Unless you use it for Dependency Injection like here what we did to pass a single variable to different components, you shouldn't use it.
+
+Finally, the context API is not stable in React. It has changed before & likely to change again.
+So try your best not to rely on context too much.
