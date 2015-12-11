@@ -1914,3 +1914,149 @@ Hence I don't have to write the code to subscribe to the store or to specify the
 ## 28. Generating Containers with connect() from React Redux (AddTodo)
 
 [JS Bin Demo](http://jsbin.com/fukira/edit?html,js,output)
+
+As we are working on single file which has multiple **ContainerComponents** ,
+I would like to rename the `mapStateToProps,mapDispatchToProps` to   `mapStateToTodoListProps,mapDispatchToTodoListProps`
+
+In real time, as all the components will have their own file, we can keep the generic names as `mapStateToProps,mapDispatchToProps`
+So the `TodoList` component becomes like this.
+```
+const mapStateToTodoListProps = (state) => {
+  return {
+    todos: getVisibleTodos(
+              state.todos,
+              state.visibilityFilter
+              )
+  };
+};
+const mapDispatchToTodoListProps = (dispatch) => {
+  return {
+    onTodoClick: (id) => {
+      dispatch({
+        type: 'TOGGLE_TODO',
+        id
+      })
+    }
+  };
+};
+const { connect } = ReactRedux;
+const VisibleTodoList = connect(
+	mapStateToTodoListProps,
+	mapDispatchToTodoListProps)(TodoList);
+```
+
+Lets go back to `AddTodo` Component, which is neither a **PresenationalComponent** nor a **ContainerComponent**
+
+```
+let nextTodoId = 0;
+
+const AddTodo = (props, { store }) => {
+	let input;
+
+	return (
+      <div>
+        <input ref = { node => {input = node;}}/>
+        <button onClick = { () => {
+                store.dispatch({
+                  type:'ADD_TODO',
+                  id:nextTodoId++,
+                  text: input.value
+                })
+							input.value = '';
+					}}>
+						Add Todo
+        </button>
+			</div>
+			);
+};
+
+AddTodo.contextTypes = {
+  store: React.PropTypes.object
+};
+
+```
+
+However, it uses the `Store` through `Context` to dispatch an action when the button is clicked.
+It had to use the `contextTypes` to grab the `store` from the `Context`.
+
+`Context` is unstable API, and it's advised to avoid it in your application code.
+
+Instead of reading the store from the `Context`, let us read it from `dispatch()` from the `props`
+Because we only need `dispatch` inside `onClick`. We don't need the whole store.
+
+Let us create a **ContainerComponent** with `connect()` that will inject the `dispatch()` as prop.
+Also we'll remove the `contextTypes`, which makes the `AddTodo` component like this.
+
+```
+let nextTodoId = 0;
+
+let AddTodo = ({ dispatch }) => {
+	let input;
+
+	return (
+      <div>
+        <input ref = { node => {input = node;}}/>
+        <button onClick = { () => {
+                dispatch({
+                  type:'ADD_TODO',
+                  id:nextTodoId++,
+                  text: input.value
+                })
+							input.value = '';
+					}}>
+						Add Todo
+        </button>
+			</div>
+			);
+};
+
+```
+
+There are no `props` for `AddTodo`, hence let us return an empty object for the first arg `state`.
+It doesn't need any  callback props; it just accepts `dispatch()` itself, so lets return it as a prop of the same name.
+
+```
+AddTodo = connect(
+  state => {
+    return {};
+    },
+    dispatch => {
+      return { dispatch };
+    }
+  )(AddTodo);
+```
+
+The generated **ContainerComponent** will not pass any props based on state. but it will pass `dispatch()` it self as a function.
+So the component will read it from the props to dispatch action.
+
+However its no use in subscribing to the store, if we don't calculate any props from state.
+So we can make the `mapStateToProps` as null.
+```
+AddTodo = connect(
+  null,
+    dispatch => {
+      return { dispatch };
+    }
+  )(AddTodo);
+```
+
+It is pretty common pattern to inject just the `dispatch()`,
+so if you make the 2nd argument as null/falsy value , you are going to get `dispatch()` injected as prop.
+
+```
+AddTodo = connect( null, null )(AddTodo);
+```
+
+In fact we can remove all args,
+
+```
+AddTodo = connect()(AddTodo);
+```
+
+Now the default behaviour will be, not subscribe to store and to inject just the `dispatch()` function as prop.
+
+
+
+## 29. Generating Containers with connect() from React Redux (FooterLink)
+
+[JS Bin Demo](http://jsbin.com/venaha/edit?html,js,output)
