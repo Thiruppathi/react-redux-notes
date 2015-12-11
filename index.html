@@ -1211,6 +1211,878 @@ componentWillUnMount() {
 
 </code></pre>
 
+<p>Thus, the <strong>Link</strong> Component only takes care of the <em>appearance</em> based on <code>active</code> props. It doesn't know about the <em>behaviour</em>
+The <strong>FilterLink</strong>  is a <strong>Container Component</strong> which provides <em>data</em> and <em>behaviour</em> to the <strong>Presentational Component (Link)</strong> .</p>
+
+<p>When it mounts, it subscribes to the store, so it independently re-renders whenever the store state's changes.
+Instead of providing its own DOM Tree, it delegates the rendering to the <strong>Presentational Component (Link)</strong>.</p>
+
+<p>It's only job is to calculate the props based on the <strong>FilterLink</strong>'s own props and the CurrentState of the Redux Store.</p>
+
+<p>And it also specifies the callback that are going to dispatch the action to the Store.
+After action is dispatched, the store will remember the new state returned by the Reducer, and it will call every Subscriber to the store.</p>
+
+<p>In this case, every <strong>FilterLink</strong> Component instance is subscribed to the store, so they will all have their <code>forceUpdate()</code> called on them.
+And they will re-render according to the Current Store State.</p>
+
+<p><strong>FilterLink</strong> is self sufficient that it can be used in any component, with out needing to pass any props to it.</p>
+
+<p>This makes the entire <strong>Footer</strong> Component simple and decoupled from the behaviour.</p>
+
+<h2>
+<a id="23-extracting-container-component-visible-todolist-addtodo" class="anchor" href="#23-extracting-container-component-visible-todolist-addtodo" aria-hidden="true"><span class="octicon octicon-link"></span></a>23. Extracting Container Component (Visible TodoList, AddTodo)</h2>
+
+<p><a href="http://jsbin.com/yasuca/edit?html,js,console,output">JS Bin Demo</a></p>
+
+<p>Lets start with extracting Container Component from <strong>TodoList</strong> to make it as a Presentational Component.</p>
+
+<pre><code>&lt;TodoList
+  todos = {getVisibleTodos(todos, visibilityFilter)}
+   onTodoClick = {id =&gt;
+      store.dispatch({
+        type: 'TOGGLE_TODO',
+        id
+      })
+  } /&gt;
+</code></pre>
+
+<p>I want to encapsulate currently visible todos, into a separate <strong>ContainerComponent</strong> which connects to the Redux Store.</p>
+
+<pre><code>class VisibleTodoList extends Component {
+
+    componentDidMount() {
+        this.unsubscribe = store.subscribe(()=&gt;
+            this.forceUpdate()
+        );
+    }
+
+    componentWillUnMount() {
+        this.unsubscribe();
+    }
+
+  render() {
+    const props = this.props;
+    const state = store.getState();
+
+        return(
+    &lt;TodoList
+      todos={
+        getVisibleTodos(
+          state.todos,
+          state.visibilityFilter
+          )
+      }
+      onTodoClick={id=&gt;
+        store.dispatch({
+          type: 'TOGGLE_TODO',
+          id
+          })
+      }
+      /&gt;
+    );
+  }
+}
+</code></pre>
+
+<p>We no longer need to pass the props from the top. Lets update the <code>TodoApp</code> component with this newly created <code>VisibleTodoList</code> component.</p>
+
+<pre><code>const TodoApp = ({todos, visibilityFilter}) =&gt; (
+      &lt;div&gt;
+            &lt;AddTodo
+                  onAddClick={text=&gt;
+                    store.dispatch({
+                      type:'ADD_TODO',
+                      id:nextTodoId++,
+                      text
+                    })
+                  }
+        /&gt;
+        &lt;VisibleTodoList /&gt;
+                &lt;Footer /&gt;
+      &lt;/div&gt;
+    );
+</code></pre>
+
+<p>In previous section, we made <code>AddTodo</code> as a <strong>Presentational Component</strong>. Now let's  put back the behaviour to the <code>AddToDo</code></p>
+
+<p>There isn't much behaviour and presentation in this component; in future we may need to extract the presentation based on the complexity.</p>
+
+<pre><code>const AddTodo = () =&gt; {
+    let input;
+
+    return (
+      &lt;div&gt;
+        &lt;input ref = { node =&gt; {input = node;}}/&gt;
+        &lt;button onClick = { () =&gt; {
+                store.dispatch({
+                  type:'ADD_TODO',
+                  id:nextTodoId++,
+                  text: input.value
+                })
+                            input.value = '';
+                    }}&gt;
+                        Add Todo
+        &lt;/button&gt;
+            &lt;/div&gt;
+            );
+};
+</code></pre>
+
+<p>None of the Container component needs props from State, so we can remove the props of the <code>TodoApp</code> Component.
+This makes the Top Level component simpler.</p>
+
+<pre><code>const TodoApp = () =&gt; (
+      &lt;div&gt;
+            &lt;AddTodo /&gt;
+        &lt;VisibleTodoList /&gt;
+                &lt;Footer /&gt;
+      &lt;/div&gt;
+    );
+</code></pre>
+
+<p>We can  remove  </p>
+
+<ul>
+<li>
+<code>render()</code> function which renders the <code>&lt;TodoApp&gt;</code> with the current state of the app.</li>
+<li>all the <code>props</code> that are related to the <code>state</code>
+</li>
+<li><code>store.subscribe(render)</code></li>
+<li><code>render()</code></li>
+</ul>
+
+<p>Because the ContainerComponent are going to Subscribe to the stores themselves.</p>
+
+<p>So the following code</p>
+
+<pre><code>const render = () =&gt; {
+  ReactDOM.render(
+        &lt;TodoApp {...store.getState()}/&gt;,
+      document.getElementById('root')
+  );
+};
+
+store.subscribe(render);
+render();
+
+</code></pre>
+
+<p>becomes like this</p>
+
+<pre><code>  ReactDOM.render(
+        &lt;TodoApp/&gt;,
+      document.getElementById('root')
+  );
+</code></pre>
+
+<p>Separating the Presentational &amp; Container Components is a good practice in most cases.
+Only do this when it truly reduces the complexity of your code base.</p>
+
+<p>As a good practice</p>
+
+<ul>
+<li>First extract the <strong>Presentational Components</strong>
+</li>
+<li>If there's too much boilerplate code, passing too many props, then you can extract <strong>ContainerComponent</strong> around them.</li>
+</ul>
+
+<h2>
+<a id="24-passing-the-store-down-explicitly-via-props" class="anchor" href="#24-passing-the-store-down-explicitly-via-props" aria-hidden="true"><span class="octicon octicon-link"></span></a>24. Passing the Store Down Explicitly via Props</h2>
+
+<p><a href="http://jsbin.com/copufu/edit?html,js,output">JS Bin Demo</a></p>
+
+<p>Managing store in a single file is not possible for RealTime Apps.</p>
+
+<ul>
+<li>Single Store Reference makes Testing harder for Container Components. ( You may want a Mock Store for Testing Purpose)</li>
+<li>Server Side Rendering becomes complex, where it has to use a different Store instance based on data.</li>
+</ul>
+
+<p>Let us move the store creation code next to <code>ReactOM.render()</code></p>
+
+<pre><code>const { createStore } = Redux;
+
+const store = createStore(todoApp);
+
+ReactDOM.render(
+    &lt;TodoApp /&gt;,
+    document.getElementById('root')
+);
+</code></pre>
+
+<p>Now lets inject the createStore(todoApp) to the <code>&lt;TodoApp/&gt;</code> component as follows</p>
+
+<pre><code>const { createStore } = Redux;
+
+ReactDOM.render(
+    &lt;TodoApp store={createStore(todoApp)} /&gt;,
+    document.getElementById('root')
+);
+</code></pre>
+
+<p>Unfortunately we have to pass the store to every component as <code>props</code>.</p>
+
+<pre><code>const TodoApp = ({store}) =&gt; (
+      &lt;div&gt;
+              &lt;AddTodo store={store} /&gt;
+        &lt;VisibleTodoList store={store} /&gt;
+                &lt;Footer store={store} /&gt;
+      &lt;/div&gt;
+    );
+</code></pre>
+
+<p>Its less effort than passing props to the component; still its inefficient.
+We'll find a better solution to this later; Let us proceed like this to focus on the problem.</p>
+
+<p>The problem is that the <strong>Container Component</strong> needs to have the store instance to get the state from the dispatch actions and subscribe to the changes.</p>
+
+<p>So we should update the <strong>Container Components</strong> to get the Store from <code>props</code>.</p>
+
+<p>Lets start with <code>VisibleTodoList</code> by updating the <code>componentDidMount()</code> and <code>render()</code></p>
+
+<pre><code>componentDidMount() {
+  const { store } = this.props;
+  this.unsubscribe = store.subscribe(()=&gt;
+    this.forceUpdate()
+  );
+}
+</code></pre>
+
+<pre><code>render() {
+  const props = this.props;
+  const { store } = props;
+  const state = store.getState();
+
+  ....
+  ....
+}
+</code></pre>
+
+<p>Now the <code>VisibleTodoList</code> looks like this.</p>
+
+<pre><code>class VisibleTodoList extends Component {
+
+    componentDidMount() {
+    const { store } = this.props;
+        this.unsubscribe = store.subscribe(()=&gt;
+            this.forceUpdate()
+        );
+    }
+
+    componentWillUnMount() {
+        this.unsubscribe();
+    }
+
+  render() {
+    const props = this.props;
+    const { store } = props;
+    const state = store.getState();
+
+        return(
+    &lt;TodoList
+      todos={
+        getVisibleTodos(
+          state.todos,
+          state.visibilityFilter
+          )
+      }
+      onTodoClick={id=&gt;
+        store.dispatch({
+          type: 'TOGGLE_TODO',
+          id
+          })
+      }
+      /&gt;
+    );
+  }
+}
+</code></pre>
+
+<p>Let's follow the same steps to update remaining <strong>Container Components</strong></p>
+
+<p><strong>AddTodo</strong></p>
+
+<pre><code>const AddTodo = ({ store }) =&gt; {
+    let input;
+
+    return (
+      &lt;div&gt;
+        &lt;input ref = { node =&gt; {input = node;}}/&gt;
+        &lt;button onClick = { () =&gt; {
+                store.dispatch({
+                  type:'ADD_TODO',
+                  id:nextTodoId++,
+                  text: input.value
+                })
+                            input.value = '';
+                    }}&gt;
+                        Add Todo
+        &lt;/button&gt;
+            &lt;/div&gt;
+            );
+};
+</code></pre>
+
+<p><strong>Footer</strong></p>
+
+<pre><code>const Footer = ({ store }) =&gt; (
+                &lt;p&gt;
+           Show :
+             {' '}
+             &lt;FilterLink filter = 'SHOW_ALL' store={store}&gt;All&lt;/FilterLink&gt;
+             {' ,  '}
+             &lt;FilterLink filter = 'SHOW_ACTIVE' store={store}&gt;Active&lt;/FilterLink&gt;
+             {' ,  '}
+             &lt;FilterLink filter = 'SHOW_COMPLETED' store={store}&gt;Completed&lt;/FilterLink&gt;
+        &lt;/p&gt;
+);
+</code></pre>
+
+<p><strong>FilterLink</strong></p>
+
+<pre><code>class FilterLink extends Component {
+
+    componentDidMount() {
+    const { store } = this.props;
+        this.unsubscribe = store.subscribe(()=&gt;
+            this.forceUpdate()
+        );
+    }
+
+    componentWillUnMount() {
+        this.unsubscribe();
+    }
+
+
+    render() {
+        const props = this.props;
+    const { store } = props;        
+        const state = store.getState();
+
+        return (
+          &lt;Link
+              active = {
+                props.filter === state.visibilityFilter
+              }
+              onClick={() =&gt;
+                  store.dispatch({
+                  type: 'SET_VISIBILITY_FILTER',
+                  filter: props.filter
+            })
+          }
+        &gt; {props.children}
+            &lt;/Link&gt;
+        );
+    }
+}
+</code></pre>
+
+<p>Now all components read the Store from the props, and don't rely on the top level store.</p>
+
+<p>This change did not affect the behaviour or the DataFlow of the application.</p>
+
+<p>The <strong>ContainerComponent</strong> subscribes to the Store, just like before and updates the state in response to the changes.</p>
+
+<p>What changed is how they access the store. Previously it accesses through top level variable, which doesn't scale much on Real World Applications.</p>
+
+<p>That's why we pass down the store as <code>props</code>, so that the <strong>ContainerComponents</strong> can subscribe to it.</p>
+
+<p>In future example, we'll see how to pass the store down to the <strong>ContainerComponents</strong> implicitly, but without introducing the top level variable.</p>
+
+<h2>
+<a id="25-passing-the-store-down-implicitly-via-context" class="anchor" href="#25-passing-the-store-down-implicitly-via-context" aria-hidden="true"><span class="octicon octicon-link"></span></a>25. Passing the Store Down Implicitly via Context</h2>
+
+<p><a href="http://jsbin.com/yuhusa/edit?html,js,output">JS Bin Demo</a></p>
+
+<p>In the previous step, we got rid of the top level Store variable and passed it as a <code>prop</code> to the component.
+We had to write lot of boilerplate code to pass down the store as <code>props</code>;</p>
+
+<p>There is another way using the Advanced React feature called <strong>Context</strong>.</p>
+
+<p>Let us create a new Component called <code>Provider</code>.</p>
+
+<p>From its <code>render()</code> it just returns whatever it's the child is.
+So we can wrap any Component under <code>Provider</code> &amp; its gonna render the Component.</p>
+
+<pre><code>class Provider extends Component {
+  render() {
+    return this.props.children;
+  }
+}
+</code></pre>
+
+<p>I'm going to update the <code>render()</code> to</p>
+
+<ul>
+<li>Render the <code>&lt;TodoApp store={createStore(todoApp)}/&gt;</code>  inside the <code>Provider</code>.</li>
+<li>Move the <code>store={createStore(todoApp)}</code> to the <code>&lt;Provider store={createStore(todoApp)}&gt;</code>
+</li>
+</ul>
+
+<p>The <code>render()</code> will look like this.</p>
+
+<pre><code>ReactDOM.render(
+  &lt;Provider store={createStore(todoApp)} &gt;
+     &lt;TodoApp  /&gt;
+  &lt;/Provider&gt;,
+    document.getElementById('root')
+);
+</code></pre>
+
+<p>The <code>Provider</code> Component will use React's advanced Context feature to make the Store available to any Component inside it including grandChildren.</p>
+
+<p>To do this, it has to define a special method called <code>getChildContext()</code></p>
+
+<pre><code>class Provider extends Component {
+  getChildContext() {
+    return {
+      store: this.props.store
+    };
+  }
+  render() {
+    return this.props.children;
+  }
+}
+</code></pre>
+
+<p><code>store:this.props.store</code> is the <code>store</code> passed through <code>&lt;Provider store={createStore(todoApp)}&gt;</code> which will be part of the Context that the <code>Provider</code> specifies for its any Children &amp; Grand Children.</p>
+
+<p>However, there is an important condition for the Context to work. i.e.,</p>
+
+<ul>
+<li>You've to specify <code>childContextTypes</code> on the Component(<code>Provider</code>) that defines <code>getChildContext()</code>
+</li>
+</ul>
+
+<pre><code>Provider.childContextTypes = {
+  store: React.PropTypes.object
+}
+</code></pre>
+
+<p>These are just <code>React.PropTypes</code> definitions. But unlike <code>PropTypes</code>, these <code>childContextTypes</code> are essential for the <code>Context</code> to be turned on.
+If you don't specify them, no child components will receive this context.</p>
+
+<p>The <strong>ContainerComponents</strong> currently access the store through the props. Now you can access through <code>Context</code></p>
+
+<pre><code>class VisibleTodoList extends Component {
+
+    componentDidMount() {
+    const { store } = this.context;
+        this.unsubscribe = store.subscribe(()=&gt;
+            this.forceUpdate()
+        );
+    }
+
+    componentWillUnMount() {
+        this.unsubscribe();
+    }
+
+  render() {
+    const props = this.props;
+    const { store } = this.context;
+    const state = store.getState();
+
+        return(
+    &lt;TodoList
+      todos={
+        getVisibleTodos(
+          state.todos,
+          state.visibilityFilter
+          )
+      }
+      onTodoClick={id=&gt;
+        store.dispatch({
+          type: 'TOGGLE_TODO',
+          id
+          })
+      }
+      /&gt;
+    );
+  }
+}
+</code></pre>
+
+<p>We've to specify <code>contextTypes</code> for the ContainerComponent.</p>
+
+<pre><code>VisibleTodoList.contextTypes = {
+  store: React.PropTypes.object
+};
+</code></pre>
+
+<p>This is similar to <code>childContextTypes</code> but in this case we are specifying which <code>Context</code> to receive, not to pass down.
+If we don't define the <code>contextTypes</code> then the component will not receive the relevant <code>Context</code></p>
+
+<p>What about the <strong>FunctionalComponent</strong> Which don't have <code>this</code>. e.g. <code>AddTodo</code>
+It turns out that it also receives the <code>Context</code>, but as the second argument, after the <code>props</code></p>
+
+<pre><code>const AddTodo = (props, { store }) =&gt; {
+    let input;
+
+    return (
+      &lt;div&gt;
+        &lt;input ref = { node =&gt; {input = node;}}/&gt;
+        &lt;button onClick = { () =&gt; {
+                store.dispatch({
+                  type:'ADD_TODO',
+                  id:nextTodoId++,
+                  text: input.value
+                })
+                            input.value = '';
+                    }}&gt;
+                        Add Todo
+        &lt;/button&gt;
+            &lt;/div&gt;
+            );
+};
+</code></pre>
+
+<p>Just like the ContainerComponent we need to specify <code>contextTypes</code> for this <strong>FunctionalComponent</strong> stating which <code>Context</code> it wants to receive.
+In this case, its the <code>store</code>.</p>
+
+<pre><code>AddTodo.contextTypes = {
+  store: React.PropTypes.object
+};
+</code></pre>
+
+<p>Let us update <code>FilterLink</code> Component now in the same way, to set the Context.</p>
+
+<pre><code>class FilterLink extends Component {
+
+    componentDidMount() {
+    const { store } = this.context;
+        this.unsubscribe = store.subscribe(()=&gt;
+            this.forceUpdate()
+        );
+    }
+
+    componentWillUnMount() {
+        this.unsubscribe();
+    }
+
+
+    render() {
+        const props = this.props;
+    const { store } = this.context;     
+        const state = store.getState();
+
+        return (
+          &lt;Link
+              active = {
+                props.filter === state.visibilityFilter
+              }
+              onClick={() =&gt;
+                  store.dispatch({
+                  type: 'SET_VISIBILITY_FILTER',
+                  filter: props.filter
+            })
+          }
+        &gt; {props.children}
+            &lt;/Link&gt;
+        );
+    }
+}
+</code></pre>
+
+<pre><code>
+FilterLink.contextTypes = {
+  store: React.PropTypes.object
+};
+
+</code></pre>
+
+<p>As the <code>FilterLink</code> is self contained to get the <code>store</code> from the <code>context</code>, we don't have to pass them through the <code>Footer</code>.
+Let's get rid of it.</p>
+
+<pre><code>const Footer = () =&gt; (
+                &lt;p&gt;
+           Show :
+             {' '}
+             &lt;FilterLink filter = 'SHOW_ALL'&gt;All&lt;/FilterLink&gt;
+             {' ,  '}
+             &lt;FilterLink filter = 'SHOW_ACTIVE'&gt;Active&lt;/FilterLink&gt;
+             {' ,  '}
+             &lt;FilterLink filter = 'SHOW_COMPLETED'&gt;Completed&lt;/FilterLink&gt;
+        &lt;/p&gt;
+);
+</code></pre>
+
+<p>Also the <code>TodoApp</code></p>
+
+<pre><code>const TodoApp = () =&gt; (
+      &lt;div&gt;
+              &lt;AddTodo /&gt;
+        &lt;VisibleTodoList /&gt;
+                &lt;Footer /&gt;
+      &lt;/div&gt;
+    );
+
+</code></pre>
+
+<p>Context is a powerful feature, but in a way it contradicts the <code>React</code> Philosophy of the explicit data flow.
+The Context is essentially a Global Variable across the Component tree, but Global Variables are usually bad idea.</p>
+
+<p>Unless you use it for Dependency Injection like here what we did to pass a single variable to different components, you shouldn't use it.</p>
+
+<p>Finally, the context API is not stable in React. It has changed before &amp; likely to change again.
+So try your best not to rely on context too much.</p>
+
+<h2>
+<a id="26-passing-the-store-down-with-provide-from-react-redux" class="anchor" href="#26-passing-the-store-down-with-provide-from-react-redux" aria-hidden="true"><span class="octicon octicon-link"></span></a>26. Passing the Store Down with &lt;Provide&gt; from React Redux</h2>
+
+<p><a href="http://jsbin.com/tulece/edit?html,js,output">JS Bin Demo</a></p>
+
+<p>In previous step, we've implemented <code>Provider</code> which uses React's Context to make the <code>store</code> available for every component it wraps.</p>
+
+<p>It's so convenient that you don't need to write this <code>Provider</code> implementation yourself.</p>
+
+<p>You can use a special library  <code>react-redux</code></p>
+
+<pre><code>  &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/react-redux/4.0.0/react-redux.js"&gt;&lt;/script&gt;
+</code></pre>
+
+<p>This is redux binding to the react library.</p>
+
+<p>Get rid of the <code>Provider</code> implementation we wrote with the following piece of code.</p>
+
+<pre><code>const { Provider } = ReactRedux;
+
+// import { Provider } from 'react-redux'; // For ES6/Babel, npm
+// var Provider = require('react-redux').Provider; // For ES5 Code
+
+</code></pre>
+
+<h2>
+<a id="27-generating-containers-with-connect-from-react-redux" class="anchor" href="#27-generating-containers-with-connect-from-react-redux" aria-hidden="true"><span class="octicon octicon-link"></span></a>27. Generating Containers with <code>connect()</code> from React Redux</h2>
+
+<p><a href="http://jsbin.com/necaka/edit?html,js,output">JS Bin Demo</a></p>
+
+<p>We are going to write the <code>VisibleTodoList</code> component in a different way.</p>
+
+<pre><code>const mapStateToProps = (sate) =&gt; {
+  return {
+
+  };
+}
+</code></pre>
+
+<p><code>mapStateToProps</code> takes the Redux's Store state and returns the  <code>props</code> it needs to pass to the Presentational <code>TodoList</code> component, to render it with the current state.</p>
+
+<p>In this case, its a singel <code>props</code> called <code>todos</code>. Let us copy paste it from the <code>TodoList</code> component.</p>
+
+<p>It returns the <code>props</code> the dependent on the current <code>state</code> of the Redux Store.</p>
+
+<pre><code>const mapStateToProps = (state) =&gt; {
+  return {
+    todos: getVisibleTodos(
+              state.todos,
+              state.visibilityFilter
+              )
+  };
+};
+</code></pre>
+
+<p>Let us create another function <code>mapDispatchToProps</code>, and it accepts <code>dispatch</code> method from the <code>store</code> as only argument.
+It returns the <code>props</code> thats should be passed to the <code>TodoList</code> component and that dependent on the <code>dispatch</code> method.</p>
+
+<p>The only <code>prop</code> which is dependent on <code>dispatch</code> method is <code>onTodoClick</code>. Let's copy that from <code>TodoList</code> Component.</p>
+
+<p>Note that we will not have reference to <code>store</code> anymore.
+So instead of using <code>store.dispatch()</code> we are going to use <code>dispatch</code> which is provided as an argument to the <code>mapDispatchToProps</code></p>
+
+<pre><code>const mapDispatchToProps = (dispatch) =&gt; {
+  return {
+    onTodoClick: (id) =&gt; {
+      dispatch({
+        type: 'TOGGLE_TODO',
+        id
+      })
+    }
+  };
+};
+</code></pre>
+
+<p>Now we have 2 different functions.</p>
+
+<ul>
+<li><p><code>mapStateToProps</code> - maps the Redux Store state to the <code>props</code> of the <code>TodoList</code> Component, that are related to the data from the redux store.</p></li>
+<li><p><code>mapDispatchToProps</code> - maps the <code>dispatch()</code> of the store, to the callback props of the <code>TodoList</code> Component, it specifies the behaviour of which callback props dispatches which action.</p></li>
+</ul>
+
+<p>These 2 functions together can define a <strong>ContainerComponent</strong>.
+So instead of writing our Own <strong>ContainerComponent</strong>, we can generate the same using <code>react-redux</code>'s <code>connect</code>.</p>
+
+<pre><code>const { connect } = ReactRedux;
+// import { connect } from 'react-redux'; // ES6, Babel
+</code></pre>
+
+<p>Let us create a variable instead of class, and we'll use the <code>connect()</code> method to obtain value for the variable.</p>
+
+<pre><code>const VisibleTodoList = connect(
+    mapStateToProps,
+    mapDispatchToProps)(TodoList);
+</code></pre>
+
+<p>Notice that this is a <code>connect()</code> I've to call it once again and this time,
+I pass the <strong>PresenationalComponent</strong> that I want to wrap and pass the props to.</p>
+
+<p>This <code>connect()</code> will create the same component, which we created earlier from scratch.</p>
+
+<p>Hence I don't have to write the code to subscribe to the store or to specify the Context Type, because the <code>connect</code> function takes care of it.</p>
+
+<h2>
+<a id="28-generating-containers-with-connect-from-react-redux-addtodo" class="anchor" href="#28-generating-containers-with-connect-from-react-redux-addtodo" aria-hidden="true"><span class="octicon octicon-link"></span></a>28. Generating Containers with connect() from React Redux (AddTodo)</h2>
+
+<p><a href="http://jsbin.com/fukira/edit?html,js,output">JS Bin Demo</a></p>
+
+<p>As we are working on single file which has multiple <strong>ContainerComponents</strong> ,
+I would like to rename the <code>mapStateToProps,mapDispatchToProps</code> to   <code>mapStateToTodoListProps,mapDispatchToTodoListProps</code></p>
+
+<p>In real time, as all the components will have their own file, we can keep the generic names as <code>mapStateToProps,mapDispatchToProps</code>
+So the <code>TodoList</code> component becomes like this.</p>
+
+<pre><code>const mapStateToTodoListProps = (state) =&gt; {
+  return {
+    todos: getVisibleTodos(
+              state.todos,
+              state.visibilityFilter
+              )
+  };
+};
+const mapDispatchToTodoListProps = (dispatch) =&gt; {
+  return {
+    onTodoClick: (id) =&gt; {
+      dispatch({
+        type: 'TOGGLE_TODO',
+        id
+      })
+    }
+  };
+};
+const { connect } = ReactRedux;
+const VisibleTodoList = connect(
+    mapStateToTodoListProps,
+    mapDispatchToTodoListProps)(TodoList);
+</code></pre>
+
+<p>Lets go back to <code>AddTodo</code> Component, which is neither a <strong>PresenationalComponent</strong> nor a <strong>ContainerComponent</strong></p>
+
+<pre><code>let nextTodoId = 0;
+
+const AddTodo = (props, { store }) =&gt; {
+    let input;
+
+    return (
+      &lt;div&gt;
+        &lt;input ref = { node =&gt; {input = node;}}/&gt;
+        &lt;button onClick = { () =&gt; {
+                store.dispatch({
+                  type:'ADD_TODO',
+                  id:nextTodoId++,
+                  text: input.value
+                })
+                            input.value = '';
+                    }}&gt;
+                        Add Todo
+        &lt;/button&gt;
+            &lt;/div&gt;
+            );
+};
+
+AddTodo.contextTypes = {
+  store: React.PropTypes.object
+};
+
+</code></pre>
+
+<p>However, it uses the <code>Store</code> through <code>Context</code> to dispatch an action when the button is clicked.
+It had to use the <code>contextTypes</code> to grab the <code>store</code> from the <code>Context</code>.</p>
+
+<p><code>Context</code> is unstable API, and it's advised to avoid it in your application code.</p>
+
+<p>Instead of reading the store from the <code>Context</code>, let us read it from <code>dispatch()</code> from the <code>props</code>
+Because we only need <code>dispatch</code> inside <code>onClick</code>. We don't need the whole store.</p>
+
+<p>Let us create a <strong>ContainerComponent</strong> with <code>connect()</code> that will inject the <code>dispatch()</code> as prop.
+Also we'll remove the <code>contextTypes</code>, which makes the <code>AddTodo</code> component like this.</p>
+
+<pre><code>let nextTodoId = 0;
+
+let AddTodo = ({ dispatch }) =&gt; {
+    let input;
+
+    return (
+      &lt;div&gt;
+        &lt;input ref = { node =&gt; {input = node;}}/&gt;
+        &lt;button onClick = { () =&gt; {
+                dispatch({
+                  type:'ADD_TODO',
+                  id:nextTodoId++,
+                  text: input.value
+                })
+                            input.value = '';
+                    }}&gt;
+                        Add Todo
+        &lt;/button&gt;
+            &lt;/div&gt;
+            );
+};
+
+</code></pre>
+
+<p>There are no <code>props</code> for <code>AddTodo</code>, hence let us return an empty object for the first arg <code>state</code>.
+It doesn't need any  callback props; it just accepts <code>dispatch()</code> itself, so lets return it as a prop of the same name.</p>
+
+<pre><code>AddTodo = connect(
+  state =&gt; {
+    return {};
+    },
+    dispatch =&gt; {
+      return { dispatch };
+    }
+  )(AddTodo);
+</code></pre>
+
+<p>The generated <strong>ContainerComponent</strong> will not pass any props based on state. but it will pass <code>dispatch()</code> it self as a function.
+So the component will read it from the props to dispatch action.</p>
+
+<p>However its no use in subscribing to the store, if we don't calculate any props from state.
+So we can make the <code>mapStateToProps</code> as null.</p>
+
+<pre><code>AddTodo = connect(
+  null,
+    dispatch =&gt; {
+      return { dispatch };
+    }
+  )(AddTodo);
+</code></pre>
+
+<p>It is pretty common pattern to inject just the <code>dispatch()</code>,
+so if you make the 2nd argument as null/falsy value , you are going to get <code>dispatch()</code> injected as prop.</p>
+
+<pre><code>AddTodo = connect( null, null )(AddTodo);
+</code></pre>
+
+<p>In fact we can remove all args,</p>
+
+<pre><code>AddTodo = connect()(AddTodo);
+</code></pre>
+
+<p>Now the default behaviour will be, not subscribe to store and to inject just the <code>dispatch()</code> function as prop.</p>
+
+<h2>
+<a id="29-generating-containers-with-connect-from-react-redux-footerlink" class="anchor" href="#29-generating-containers-with-connect-from-react-redux-footerlink" aria-hidden="true"><span class="octicon octicon-link"></span></a>29. Generating Containers with connect() from React Redux (FooterLink)</h2>
+
+<p><a href="http://jsbin.com/venaha/edit?html,js,output">JS Bin Demo</a></p>
+
+<p>Let us refactor <code>FilterLink</code> <strong>ContainerComponent</strong> by start writing <code>mapStateToProps</code></p>
+
+<p>Its going to accept the redux store's <code>state</code> as arg and return the props</p>
+
+<pre><code>const mapStateToLinkProps = ( state  ) =&gt; {
+  return {  active:  props.filter === state.visibilityFilter  }
+};
+</code></pre>
+
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/Thiruppathi/react-redux-notes">React-redux-notes</a> is maintained by <a href="https://github.com/Thiruppathi">Thiruppathi</a>.</span>
 
