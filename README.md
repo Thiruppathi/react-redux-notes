@@ -1829,13 +1829,13 @@ const { Provider } = ReactRedux;
 
 ## 27. Generating Containers with `connect()` from React Redux
 
-[JS Bin Demo](http://jsbin.com/tulece/edit?html,js,output)
+[JS Bin Demo](http://jsbin.com/necaka/edit?html,js,output)
 
 We are going to write the `VisibleTodoList` component in a different way.
 
 
 ```
-cont mapStateToProps = (sate) => {
+const mapStateToProps = (sate) => {
   return {
 
   };
@@ -1849,14 +1849,14 @@ In this case, its a singel `props` called `todos`. Let us copy paste it from the
 It returns the `props` the dependent on the current `state` of the Redux Store.
 
 ```
-cont mapStateToProps = (state) => {
+const mapStateToProps = (state) => {
   return {
     todos: getVisibleTodos(
               state.todos,
               state.visibilityFilter
               )
   };
-}
+};
 ```
 
 Let us create another function `mapDispatchToProps`, and it accepts `dispatch` method from the `store` as only argument.
@@ -1909,3 +1909,8 @@ I pass the **PresenationalComponent** that I want to wrap and pass the props to.
 This `connect()` will create the same component, which we created earlier from scratch.
 
 Hence I don't have to write the code to subscribe to the store or to specify the Context Type, because the `connect` function takes care of it.
+
+
+## 28. Generating Containers with connect() from React Redux (AddTodo)
+
+[JS Bin Demo](http://jsbin.com/fukira/edit?html,js,output)
