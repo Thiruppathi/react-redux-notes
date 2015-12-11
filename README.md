@@ -1825,3 +1825,87 @@ const { Provider } = ReactRedux;
 // var Provider = require('react-redux').Provider; // For ES5 Code
 
 ```
+
+
+## 27. Generating Containers with `connect()` from React Redux
+
+[JS Bin Demo](http://jsbin.com/tulece/edit?html,js,output)
+
+We are going to write the `VisibleTodoList` component in a different way.
+
+
+```
+cont mapStateToProps = (sate) => {
+  return {
+
+  };
+}
+```
+
+`mapStateToProps` takes the Redux's Store state and returns the  `props` it needs to pass to the Presentational `TodoList` component, to render it with the current state.
+
+In this case, its a singel `props` called `todos`. Let us copy paste it from the `TodoList` component.
+
+It returns the `props` the dependent on the current `state` of the Redux Store.
+
+```
+cont mapStateToProps = (state) => {
+  return {
+    todos: getVisibleTodos(
+              state.todos,
+              state.visibilityFilter
+              )
+  };
+}
+```
+
+Let us create another function `mapDispatchToProps`, and it accepts `dispatch` method from the `store` as only argument.
+It returns the `props` thats should be passed to the `TodoList` component and that dependent on the `dispatch` method.
+
+The only `prop` which is dependent on `dispatch` method is `onTodoClick`. Let's copy that from `TodoList` Component.
+
+Note that we will not have reference to `store` anymore.
+So instead of using `store.dispatch()` we are going to use `dispatch` which is provided as an argument to the `mapDispatchToProps`
+
+```
+const mapDispatchToProps = (dispatch) => {
+  return {
+    onTodoClick: (id) => {
+      dispatch({
+        type: 'TOGGLE_TODO',
+        id
+      })
+    }
+  };
+};
+```
+
+Now we have 2 different functions.
+
+- `mapStateToProps` - maps the Redux Store state to the `props` of the `TodoList` Component, that are related to the data from the redux store.
+
+- `mapDispatchToProps` - maps the `dispatch()` of the store, to the callback props of the `TodoList` Component, it specifies the behaviour of which callback props dispatches which action.
+
+These 2 functions together can define a **ContainerComponent**.
+So instead of writing our Own **ContainerComponent**, we can generate the same using `react-redux`'s `connect`.
+
+```
+const { connect } = ReactRedux;
+// import { connect } from 'react-redux'; // ES6, Babel
+```
+
+Let us create a variable instead of class, and we'll use the `connect()` method to obtain value for the variable.
+
+
+```
+const VisibleTodoList = connect(
+	mapStateToProps,
+	mapDispatchToProps)(TodoList);
+```
+
+Notice that this is a `connect()` I've to call it once again and this time,
+I pass the **PresenationalComponent** that I want to wrap and pass the props to.
+
+This `connect()` will create the same component, which we created earlier from scratch.
+
+Hence I don't have to write the code to subscribe to the store or to specify the Context Type, because the `connect` function takes care of it.
