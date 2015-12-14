@@ -2064,9 +2064,51 @@ Now the default behaviour will be, not subscribe to store and to inject just the
 
 Let us refactor `FilterLink` **ContainerComponent** by start writing `mapStateToProps`
 
-Its going to accept the redux store's `state` as arg and return the props
+Its going to accept the redux store's `state` as arg and return the props that should be passed to the `Link` component.
+We have only one such `prop` called `active` which determines whether the link displays the current `visibilityFilter` .
+
 ```
 const mapStateToLinkProps = ( state  ) => {
-  return {  active:  props.filter === state.visibilityFilter  }
+  return {  active:  props.filter === state.visibilityFilter  };
 };
+```
+The  `state.visibilityFilter`  is compared with `props.filter` value. Hence the `props` should be passed as an argument to the `mapStateToLinkProps` as follows.
+
+
+```
+const mapStateToLinkProps = ( state, props  ) => {
+  return {  active:  props.filter === state.visibilityFilter  };
+};
+```
+Let us rename the `props` to `ownProps` to make it clear that we are using the **ContainerComponent**'s own properties;  
+not the `props` that are passed to the child, which is the return value of `mapStateToLinkProps`
+
+```
+const mapStateToLinkProps = ( state, ownProps  ) => {
+  return {  active:  ownProps.filter === state.visibilityFilter  };
+};
+```
+
+Let us write `mapDispatchToProps` for `FilterLink`. Let us use the `dispatch()` we wrote previously, just by renaming the `props` to `ownProps`
+
+```
+const mapDispatchToLinkProps = (dispatch, ownProps) => {
+  return {
+    onClick: () => {
+      dispatch({
+	      type: 'SET_VISIBILITY_FILTER',
+	      filter: ownProps.filter
+	    });
+    }
+  };
+};
+```
+
+Now let's create the **ContainerComponent** using `connect`
+
+```
+const FilterLink = connect(
+	mapStateToLinkProps,
+	mapDispatchToLinkProps
+)(Link);
 ```
