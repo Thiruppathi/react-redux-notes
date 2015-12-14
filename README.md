@@ -2112,3 +2112,131 @@ const FilterLink = connect(
 	mapDispatchToLinkProps
 )(Link);
 ```
+
+## 30. Extracting Action Creators
+[JS Bin Demo](http://jsbin.com/vucomuz/edit?html,js,output)
+
+Let us consider `AddTodo` component.
+```
+let nextTodoId = 0;
+let AddTodo = ({ dispatch }) => {
+	let input;
+
+	return (
+      <div>
+        <input ref = { node => {input = node;}}/>
+        <button onClick = { () => {
+                dispatch({
+                  type:'ADD_TODO',
+                  id:nextTodoId++,
+                  text: input.value
+                })
+							input.value = '';
+					}}>
+						Add Todo
+        </button>
+			</div>
+			);
+};
+AddTodo = connect()(AddTodo);
+```
+
+We dispatch the `ADD_TODO` action from the `dispatch` method inside `onClick` handler.
+It references `nextTodoId` which we declare alongside the `AddTodo` component.
+```
+let nextTodoId = 0;
+```
+
+Normally it will be a local variable, but whatif another component wants to dispatch the same action.
+It will need access to  `nextTodoId` somehow. We can't make it as Global Variable, as its not a good idea.
+
+Instead it would be better, if the Component, which dispatches the `action` doesn't worry about the `id`.
+Because it just worry about the `input.value` passed when we add a ToDo.
+
+Generating `nextTodoId` inside the component, will make it non-deterministic.
+
+So we can extract the code which generates the `action` object in to a separate function `addTodo(text)` as follows.
+
+
+```
+let nextTodoId = 0;
+
+const addTodo = (text)  => {
+  return {
+    type:'ADD_TODO',
+    id:nextTodoId++,
+    text: input.value
+  };
+};
+```
+This just takes the text of the Todo and constructs an `action` object, representing `ADD_TODO` action.
+It takes care of generating the `id` and includes the `text` passed to the Todo.
+
+We usually call these kind of functions as `Action Creators` and keep them away from the Reducers & Components.
+
+```
+let AddTodo = ({ dispatch }) => {
+	let input;
+
+	return (
+      <div>
+        <input ref = { node => {input = node;}}/>
+        <button onClick = { () => {
+              dispatch(addTodo(input.value));
+							input.value = '';
+					}}>
+						Add Todo
+        </button>
+			</div>
+			);
+};
+AddTodo = connect()(AddTodo);
+```
+
+Let us create  `ActionCreator` for `mapDispatchToLinkProps`
+
+```
+const mapDispatchToLinkProps = (dispatch, ownProps) => {
+  return {
+    onClick: () => {
+      dispatch(setVisibilityFilter(ownProps.filter));
+    }
+  };
+};
+```
+
+```
+const setVisibilityFilter = (filter) => {
+  return {
+      type: 'SET_VISIBILITY_FILTER',
+      filter
+  };
+};
+```
+
+You may think that, this kind of code is boilerplate, and tend to declare the action dispatchers inside the component itself.
+
+`ActionCreator` can help your team to identify what kind of action is dispatched, which will be valuable in large applications.
+
+`Action Creator` for `VisibleTodoList`
+
+```
+const mapDispatchToTodoListProps = (dispatch) => {
+  return {
+    onTodoClick: (id) => {
+      dispatch(toggleTodo(id));
+    }
+  };
+};
+```
+
+```
+const toggleTodo = (id) => {
+  return {
+    type: 'TOGGLE_TODO',
+    id
+  };
+};
+```
+
+Grouping all `Action Creators` together can help in reusing them in unit tests, Components.
